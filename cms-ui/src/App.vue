@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
+  <router-view />
 </template>
 
 <style scoped>

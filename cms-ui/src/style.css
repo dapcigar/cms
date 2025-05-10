@@ -1,17 +1,122 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Font */
+  font-family: 'Inter', 'Open Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Color Scheme */
+  --color-primary: #0070F3;
+  --color-primary-dark: #0059c1;
+  --color-accent: #FF7A59;
+  --color-accent-dark: #e05d39;
+  --color-background: #F9FAFB;
+  --color-text: #1F2937;
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+  --color-secondary: #64748B;
+  --color-secondary-dark: #475569;
+
+  /* UI Defaults */
+  color: var(--color-text);
+  background-color: var(--color-background);
 }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Inter', 'Open Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', 'Open Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+a {
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+}
+button:hover {
+  background-color: var(--color-primary-dark);
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto var(--color-accent);
+}
+
+.card {
+  padding: 2em;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Utility classes for tags, badges, alerts, etc. */
+.bg-success { background: var(--color-success) !important; color: #fff !important; }
+.bg-error { background: var(--color-error) !important; color: #fff !important; }
+.bg-info { background: var(--color-info) !important; color: #fff !important; }
+.bg-accent { background: var(--color-accent) !important; color: #fff !important; }
+.bg-primary { background: var(--color-primary) !important; color: #fff !important; }
+.bg-secondary { background: var(--color-secondary) !important; color: #fff !important; }
+
+.text-success { color: var(--color-success) !important; }
+.text-error { color: var(--color-error) !important; }
+.text-info { color: var(--color-info) !important; }
+.text-accent { color: var(--color-accent) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.text-secondary { color: var(--color-secondary) !important; }
+
+/* Large touch targets */
+button, .btn, .input, select {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Remove old dark/light color rules */
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--color-text);
+    background-color: var(--color-background);
+  }
+  a:hover {
+    color: var(--color-primary-dark);
+  }
+  button {
+    background-color: var(--color-primary);
+  }
+}
+
 
 a {
   font-weight: 500;

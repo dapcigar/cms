@@ -4,26 +4,34 @@
       <h1 class="font-heading text-2xl">Action Plans</h1>
       <Button color="primary" @click="showCreate = true">New Action Plan</Button>
     </div>
-    <Table>
-      <template #header>
-        <th class="text-left p-2">Name</th>
-        <th class="text-left p-2">Status</th>
-        <th class="text-left p-2">Due Date</th>
-        <th class="text-left p-2">Assigned Users</th>
-        <th class="text-left p-2">Actions</th>
-      </template>
-      <tr v-for="plan in plans" :key="plan.id">
-        <td class="p-2">{{ plan.name }}</td>
-        <td class="p-2">{{ plan.status }}</td>
-        <td class="p-2">{{ plan.due_date }}</td>
-        <td class="p-2">
-          <span v-for="user in plan.assigned_users" :key="user" class="inline-block bg-secondary-light text-secondary-dark px-2 py-1 rounded mr-1 text-xs">{{ user }}</span>
-        </td>
-        <td class="p-2">
+    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      <div v-for="plan in plans" :key="plan.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-lg text-primary">{{ plan.name }}</span>
+          <span :class="[
+            'rounded-full px-3 py-1 text-xs font-semibold',
+            plan.status === 'completed' ? 'bg-success text-white' : 'bg-secondary text-white'
+          ]">
+            {{ plan.status.charAt(0).toUpperCase() + plan.status.slice(1) }}
+          </span>
+        </div>
+        <div class="mb-2">
+          <div class="text-xs text-gray-500 mb-1">Due Date:</div>
+          <div class="text-base text-primary font-medium">{{ plan.due_date }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-xs text-gray-500 mb-1">Assigned Users:</div>
+          <div class="flex flex-wrap gap-1">
+            <span v-for="userId in plan.assigned_users" :key="userId" class="inline-block bg-secondary/10 text-secondary px-2 py-1 rounded-full text-xs font-medium">
+              {{ getUserName(userId) }}
+            </span>
+          </div>
+        </div>
+        <div class="mt-auto flex gap-2">
           <Button color="secondary" size="sm" @click="editPlan(plan)">Edit</Button>
-        </td>
-      </tr>
-    </Table>
+        </div>
+      </div>
+    </div>
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Action Plan</h2>
       <form @submit.prevent="createPlan">
@@ -71,6 +79,11 @@ const users = ref<any[]>([])
 const showCreate = ref(false)
 const newPlan = ref({ name: '', status: 'pending', due_date: '', assigned_users: [] })
 const editTarget = ref<any | null>(null)
+
+function getUserName(id: string) {
+  const user = users.value.find(u => u.id === id)
+  return user ? user.name : id
+}
 
 async function fetchPlans() {
   const { data, error } = await supabase.from('action_plans').select('*')

@@ -4,24 +4,30 @@
       <h1 class="font-heading text-2xl">Audits</h1>
       <Button color="primary" @click="showCreate = true">New Audit</Button>
     </div>
-    <Table>
-      <template #header>
-        <th class="text-left p-2">Title</th>
-        <th class="text-left p-2">Status</th>
-        <th class="text-left p-2">Assigned Users</th>
-        <th class="text-left p-2">Actions</th>
-      </template>
-      <tr v-for="audit in audits" :key="audit.id">
-        <td class="p-2">{{ audit.title }}</td>
-        <td class="p-2">{{ audit.status }}</td>
-        <td class="p-2">
-          <span v-for="user in audit.assigned_users" :key="user" class="inline-block bg-primary-light text-primary-dark px-2 py-1 rounded mr-1 text-xs">{{ user }}</span>
-        </td>
-        <td class="p-2">
+    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      <div v-for="audit in audits" :key="audit.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-lg text-primary">{{ audit.title }}</span>
+          <span :class="[
+            'rounded-full px-3 py-1 text-xs font-semibold',
+            audit.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'
+          ]">
+            {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
+          </span>
+        </div>
+        <div class="mb-2">
+          <div class="text-xs text-gray-500 mb-1">Assigned Users:</div>
+          <div class="flex flex-wrap gap-1">
+            <span v-for="userId in audit.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+              {{ getUserName(userId) }}
+            </span>
+          </div>
+        </div>
+        <div class="mt-auto flex gap-2">
           <Button color="secondary" size="sm" @click="editAudit(audit)">Edit</Button>
-        </td>
-      </tr>
-    </Table>
+        </div>
+      </div>
+    </div>
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Audit</h2>
       <form @submit.prevent="createAudit">
@@ -69,6 +75,11 @@ const users = ref<any[]>([])
 const showCreate = ref(false)
 const newAudit = ref({ title: '', status: 'open', assigned_users: [] })
 const editTarget = ref<any | null>(null)
+
+function getUserName(id: string) {
+  const user = users.value.find(u => u.id === id)
+  return user ? user.name : id
+}
 
 async function fetchAudits() {
   const { data, error } = await supabase.from('audits').select('*')

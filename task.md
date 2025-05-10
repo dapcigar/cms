@@ -46,19 +46,28 @@ This file tracks all development phases, broken into smaller actionable tasks. E
 
 ## 8. Real-Time Features & Collaboration
 - [x] Enable real-time updates (Supabase subscriptions/WebSockets)
-- [ ] Collaborative editing (future)
+- [ ] Collaborative editing (multi-user editing for forms, if required for MVP)
 
 ---
 
-All major features are now implemented: authentication, user management, audits, action plans, safeguarding, incidents, surveys, notifications, analytics, and real-time updates. Ready for final review and deployment!
+## 9. Mobile Responsiveness, UI Polish & Design
+- [~] Ensure all screens are mobile-friendly and responsive
+- [ ] Apply vibrant design principles throughout (final color scheme, large touch targets, smooth transitions)
+- [ ] Final UI/UX polish and QA for design consistency
 
-## 9. Mobile Responsiveness & UX Polish
-- [ ] Ensure all screens are mobile-friendly and responsive
-- [ ] Apply vibrant design principles throughout
+## 10. Module Linkages & Confidentiality
+- [ ] Ensure 'Compliments' (not just complaints) are supported in Incidents & Complaints module
+- [ ] Implement and verify cross-linking between modules (e.g., action plans linked to audits, complaints, safeguarding, etc.)
+- [ ] Enforce safeguarding confidentiality and access restrictions (verify RLS and UI logic)
 
-## 10. Deployment & Documentation
+## 11. Analytics Enhancements
+- [ ] Implement custom analytics queries if required (allow users/admins to define and run custom queries)
+
+## 12. Deployment & Documentation
 - [ ] Prepare for deployment (Vercel, Supabase)
-- [ ] Write user/developer documentation
+- [ ] Execute deployment to production
+- [ ] Write user documentation
+- [ ] Write developer documentation
 
 ---
 

@@ -4,26 +4,39 @@
       <h1 class="font-heading text-2xl">Safeguarding Cases</h1>
       <Button color="primary" @click="showCreate = true">New Case</Button>
     </div>
-    <Table>
-      <template #header>
-        <th class="text-left p-2">Type</th>
-        <th class="text-left p-2">Description</th>
-        <th class="text-left p-2">Status</th>
-        <th class="text-left p-2">Assigned Users</th>
-        <th class="text-left p-2">Actions</th>
-      </template>
-      <tr v-for="caseItem in cases" :key="caseItem.id">
-        <td class="p-2">{{ caseItem.type }}</td>
-        <td class="p-2">{{ caseItem.description }}</td>
-        <td class="p-2">{{ caseItem.status }}</td>
-        <td class="p-2">
-          <span v-for="user in caseItem.assigned_users" :key="user" class="inline-block bg-accent-light text-accent-dark px-2 py-1 rounded mr-1 text-xs">{{ user }}</span>
-        </td>
-        <td class="p-2">
+    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      <div v-for="caseItem in cases" :key="caseItem.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <span :class="[
+            'rounded-full px-3 py-1 text-xs font-semibold',
+            caseItem.type.toLowerCase().includes('risk') ? 'bg-error text-white' : 'bg-accent text-white'
+          ]">
+            {{ caseItem.type }}
+          </span>
+          <span :class="[
+            'rounded-full px-3 py-1 text-xs font-semibold',
+            caseItem.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'
+          ]">
+            {{ caseItem.status.charAt(0).toUpperCase() + caseItem.status.slice(1) }}
+          </span>
+        </div>
+        <div class="mb-2">
+          <div class="text-xs text-gray-500 mb-1">Description:</div>
+          <div class="text-base text-primary font-medium">{{ caseItem.description }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-xs text-gray-500 mb-1">Assigned Users:</div>
+          <div class="flex flex-wrap gap-1">
+            <span v-for="userId in caseItem.assigned_users" :key="userId" class="inline-block bg-accent/10 text-accent px-2 py-1 rounded-full text-xs font-medium">
+              {{ getUserName(userId) }}
+            </span>
+          </div>
+        </div>
+        <div class="mt-auto flex gap-2">
           <Button color="secondary" size="sm" @click="editCase(caseItem)">Edit</Button>
-        </td>
-      </tr>
-    </Table>
+        </div>
+      </div>
+    </div>
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Safeguarding Case</h2>
       <form @submit.prevent="createCase">
@@ -71,6 +84,11 @@ const users = ref<any[]>([])
 const showCreate = ref(false)
 const newCase = ref({ type: '', description: '', status: 'open', assigned_users: [] })
 const editTarget = ref<any | null>(null)
+
+function getUserName(id: string) {
+  const user = users.value.find(u => u.id === id)
+  return user ? user.name : id
+}
 
 async function fetchCases() {
   const { data, error } = await supabase.from('safeguarding').select('*')
