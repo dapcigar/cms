@@ -39,25 +39,32 @@
 import { ref, onMounted } from 'vue'
 import Layout from '../components/Layout.vue'
 import Tabs from '../components/Tabs.vue'
-// Placeholder: Replace with real fetch logic
-const incident = ref({
-  id: 'INC-001',
-  type: 'incident',
-  description: 'Medication error',
-  status: 'open',
-  assigned_users: ['u1', 'u2'],
-  action_plan_ids: ['ap1'],
-  audit_ids: ['au1'],
-  safeguarding_case_ids: ['sg1'],
-  logs: [
-    { id: 1, date: '2025-05-10', message: 'Created' },
-    { id: 2, date: '2025-05-11', message: 'Assigned to user' }
-  ]
-})
-const users = ref([{ id: 'u1', name: 'Alice' }, { id: 'u2', name: 'Bob' }])
-const plans = ref([{ id: 'ap1', name: 'Follow-up' }])
-const audits = ref([{ id: 'au1', title: 'Q1 Audit' }])
-const cases = ref([{ id: 'sg1', description: 'Allegation review' }])
+import { useRoute } from 'vue-router'
+import { supabase } from '../supabase'
+const route = useRoute()
+const incident = ref<any>(null)
+const users = ref<any[]>([])
+const plans = ref<any[]>([])
+const audits = ref<any[]>([])
+const cases = ref<any[]>([])
+const loading = ref(true)
+
+async function fetchDetail() {
+  loading.value = true
+  const { data: inc } = await supabase.from('incidents').select('*').eq('id', route.params.id).single()
+  incident.value = inc
+  const { data: userData } = await supabase.from('users').select('id, name')
+  users.value = userData || []
+  const { data: planData } = await supabase.from('action_plans').select('id, name')
+  plans.value = planData || []
+  const { data: auditData } = await supabase.from('audits').select('id, title')
+  audits.value = auditData || []
+  const { data: caseData } = await supabase.from('safeguarding').select('id, description')
+  cases.value = caseData || []
+  loading.value = false
+}
+onMounted(fetchDetail)
+
 const tabDefs = [
   { label: 'Summary', icon: 'info' },
   { label: 'Related', icon: 'link' },

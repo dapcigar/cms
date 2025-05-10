@@ -2,16 +2,24 @@
   <Layout>
     <div class="flex justify-between items-center mb-6">
       <h1 class="font-heading text-2xl">Incidents & Complaints</h1>
-      <Button color="primary" @click="showCreate = true">New Incident/Complaint</Button>
+      <router-link :to="{ name: 'IncidentCreateForm' }">
+        <Button color="primary">Report Incident</Button>
+      </router-link>
     </div>
     <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-      <div v-for="item in incidents" :key="item.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+      <router-link
+        v-for="incident in incidents"
+        :key="incident.id"
+        :to="{ name: 'IncidentDetail', params: { id: incident.id } }"
+        class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
+        style="color: inherit;"
+      >
         <div class="flex items-center justify-between mb-2">
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',
-            item.type === 'compliment' ? 'bg-success text-white' : (item.type === 'complaint' ? 'bg-error text-white' : 'bg-info text-white')
+            incident.type === 'compliment' ? 'bg-success text-white' : (incident.type === 'complaint' ? 'bg-error text-white' : 'bg-info text-white')
           ]">
-            {{ item.type.charAt(0).toUpperCase() + item.type.slice(1) }}
+            {{ incident.type.charAt(0).toUpperCase() + incident.type.slice(1) }}
           </span>
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',

@@ -1,17 +1,19 @@
 <template>
-  <aside
-    :class="[
-      'h-full flex flex-col py-6 px-2 shadow-lg transition-all duration-300 bg-white border-r border-gray-200',
-      collapsed ? 'w-20' : 'w-64',
-      'fixed md:relative z-40'
-    ]"
-  >
+  <Transition name="slide">
+    <aside
+      :class="[
+        'h-full flex flex-col py-6 px-3 shadow-lg transition-all duration-300',
+        'bg-surface border-r border-gray-200',
+        collapsed ? 'w-20' : 'w-64',
+        'fixed md:relative z-40'
+      ]"
+    >
     <nav class="flex-1">
       <ul class="space-y-2">
         <li v-for="item in navItems" :key="item.label">
           <a
             :href="item.href"
-            class="flex items-center px-3 py-2 rounded-xl transition-all hover:bg-primary hover:text-white"
+            class="flex items-center px-3 py-3 rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
             :class="{
               'bg-primary text-white': isActive(item),
               'text-primary': !isActive(item)
@@ -25,13 +27,14 @@
       </ul>
     </nav>
     <button
-      class="mt-4 mb-2 mx-auto flex items-center justify-center p-2 rounded-full bg-primary text-white hover:bg-primary-dark transition-all"
+      class="mt-4 mb-2 mx-auto flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
       @click="toggleCollapse"
       :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
     >
       <span class="material-icons">{{ collapsed ? 'chevron_right' : 'chevron_left' }}</span>
     </button>
-  </aside>
+      </aside>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +62,16 @@ function isActive(item) {
 </script>
 
 <style scoped>
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
 @media (max-width: 768px) {
   aside {
     position: fixed;

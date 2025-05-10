@@ -5,7 +5,13 @@
       <Button color="primary" @click="showCreate = true">New Action Plan</Button>
     </div>
     <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-      <div v-for="plan in plans" :key="plan.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+      <router-link
+        v-for="plan in plans"
+        :key="plan.id"
+        :to="{ name: 'ActionPlanDetail', params: { id: plan.id } }"
+        class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
+        style="color: inherit;"
+      >
         <div class="flex items-center justify-between mb-2">
           <span class="font-bold text-lg text-primary">{{ plan.name }}</span>
           <span :class="[

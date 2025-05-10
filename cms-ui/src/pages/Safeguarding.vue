@@ -2,10 +2,18 @@
   <Layout>
     <div class="flex justify-between items-center mb-6">
       <h1 class="font-heading text-2xl">Safeguarding Cases</h1>
-      <Button color="primary" @click="showCreate = true">New Case</Button>
+      <router-link :to="{ name: 'SafeguardingLogForm' }">
+        <Button color="primary">New Safeguarding Case</Button>
+      </router-link>
     </div>
     <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-      <div v-for="caseItem in cases" :key="caseItem.id" class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col">
+      <router-link
+        v-for="caseItem in cases"
+        :key="caseItem.id"
+        :to="{ name: 'SafeguardingDetail', params: { id: caseItem.id } }"
+        class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
+        style="color: inherit;"
+      >
         <div class="flex items-center justify-between mb-2">
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',
