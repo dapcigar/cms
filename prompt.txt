@@ -1,0 +1,140 @@
+Project Overview:
+We are building a Care Management System using Supabase as the backend, and the app should be vibrant, mobile-friendly, and scalable. The main features of the app include user management (with roles and permissions), audits, action plans, safeguarding, surveys, incidents, complaints, and analytics. The system should be able to assign roles and permissions to users, allow admins to create and manage users, and handle notifications using Resend.com.
+
+Tech Stack:
+Frontend: ReactJS (Vibrant, modern design with mobile-first approach).
+
+Backend: Supabase (Database, Authentication, Storage, API) for user management, data storage, and real-time updates.
+
+Email Notifications: Resend.com for email notification services.
+
+Hosting: Frontend on Vercel (Backend managed by Supabase).
+
+App Features & Functionalities:
+1. User Management:
+Admins can create users and assign roles.
+
+Users receive an email to set up their password.
+
+Users can have group permissions (based on roles) and individual overrides for specific actions.
+
+Use Supabase Authentication for user sign-up, login, and password resets.
+
+Role-based access: Different roles (Admin, Staff, etc.) with varying access permissions.
+
+2. Audits:
+Audits are created by users (admins or staff).
+
+Audits can have an open/closed status, descriptions, and assigned user(s).
+
+Users can attach action plans to audits (action plans may or may not be related to audits).
+
+Permissions: Users can only see the audits they've created or have access to, using Row Level Security (RLS) in Supabase.
+
+3. Action Plans:
+Multiple users can be assigned to a single action plan.
+
+Action plans can be standalone or related to audits, incidents, or complaints.
+
+Action plans have a due date and a status (e.g., pending, completed).
+
+Users can update the action plan status and progress.
+
+4. Safeguarding:
+A safeguarding table to log incidents or complaints related to vulnerable individuals.
+
+Safeguarding entries must be linked to users and tracked for progress.
+
+Safeguarding actions can also be connected to action plans for resolution.
+
+Permissions: Only relevant users (e.g., safeguarding officers) should have access to safeguarding information.
+
+5. Surveys:
+Admins can create surveys related to audits, actions, or staff performance.
+
+Surveys should collect responses from users and store them in the database.
+
+Users should be able to view surveys that they are assigned to.
+
+Responses should be used to generate reports or insights.
+
+6. Incidents & Complaints:
+Incident and complaint logs should allow users to report issues.
+
+These logs are associated with users and include a status (open/closed).
+
+Admins can manage complaints and incidents, assign responsible parties, and track the status.
+
+7. Analytics:
+The app should include analytics to provide insights into the system.
+
+Metrics like audit completion rates, action plan status, incident resolutions, etc.
+
+The system should visualize data in dashboards using charts and graphs.
+
+8. Notification System:
+Resend.com will be used to send email notifications (e.g., when a user is assigned to an action plan, an audit is created, etc.).
+
+Emails should include links for users to navigate to the appropriate pages.
+
+Database Structure:
+Use Supabase to create tables for each of the features above:
+
+Users
+
+Roles
+
+Permissions
+
+Audits
+
+Action Plans
+
+Safeguarding Logs
+
+Surveys
+
+Incidents
+
+Complaints
+
+Analytics (aggregated metrics)
+
+Each table will have necessary columns, and Row Level Security (RLS) will be set up to restrict data access to the appropriate users based on their role and permissions.
+
+Real-Time Features:
+Supabase's real-time capabilities should be used for updates such as new actions being assigned, audits being created, or incidents being reported. This will allow users to see changes instantly without needing to refresh.
+
+Deployment:
+The frontend will be deployed on Vercel.
+
+The backend (Supabase) will be fully managed, handling database, authentication, and storage.
+
+Deliverables:
+Design: A vibrant and mobile-friendly interface for users.
+
+User Authentication: Email-based sign-up/login with Supabase.
+
+CRUD Operations: For managing audits, action plans, incidents, complaints, and more.
+
+Real-time Updates: Implement real-time syncing for collaborative features.
+
+Notifications: Integrate with Resend.com to send timely email notifications.
+
+Analytics Dashboard: Visualize key data metrics (e.g., audit completion rates, incident reports).
+
+Role & Permission Management: Implement role-based and individual permissions.
+
+Supabase Configuration:
+Tables: We will define tables for all necessary entities (Users, Roles, Audits, Action Plans, Surveys, etc.).
+
+Auth: Supabase authentication will handle user registration and management.
+
+Row-Level Security: Set up RLS policies to ensure that users can only access data that they are permitted to view.
+
+Goal:
+The goal is to create a robust, scalable, and easy-to-use Care Management System that helps organizations track audits, incidents, action plans, and complaints while maintaining a strong permission system and real-time updates.
+
+Note for Windsurf:
+Make sure that all features are developed according to the structure above and follow the vibrant design principles for both web and mobile versions. Ensure the app is mobile-responsive and can scale as needed.
+
