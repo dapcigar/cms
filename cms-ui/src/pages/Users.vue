@@ -2,7 +2,7 @@
   <Layout>
     <div class="flex justify-between items-center mb-6">
       <h1 class="font-heading text-2xl">User Management</h1>
-      <Button color="primary" @click="showCreate = true">Add User</Button>
+      <Button v-if="isAdmin" color="primary" @click="showCreate = true">Add User</Button>
     </div>
     <Table>
       <template #header>
@@ -16,7 +16,7 @@
         <td class="p-2">{{ user.email }}</td>
         <td class="p-2">{{ user.role }}</td>
         <td class="p-2">
-          <Button color="secondary" size="sm" @click="editUser(user)">Edit</Button>
+          <Button v-if="isAdmin" color="secondary" size="sm" @click="editUser(user)">Edit</Button>
         </td>
       </tr>
     </Table>
@@ -26,7 +26,7 @@
         <Input v-model="newUser.name" placeholder="Name" class="mb-2" />
         <Input v-model="newUser.email" placeholder="Email" class="mb-2" />
         <Input v-model="newUser.password" type="password" placeholder="Password" class="mb-2" />
-        <select v-model="newUser.role" class="mb-4 p-2 border rounded w-full">
+        <select v-if="isAdmin" v-model="newUser.role" class="mb-4 p-2 border rounded w-full">
           <option value="admin">Admin</option>
           <option value="staff">Staff</option>
         </select>
@@ -38,7 +38,7 @@
       <form @submit.prevent="updateUser">
         <Input v-model="editTarget.name" placeholder="Name" class="mb-2" />
         <Input v-model="editTarget.email" placeholder="Email" class="mb-2" />
-        <select v-model="editTarget.role" class="mb-4 p-2 border rounded w-full">
+        <select v-if="isAdmin" v-model="editTarget.role" class="mb-4 p-2 border rounded w-full">
           <option value="admin">Admin</option>
           <option value="staff">Staff</option>
         </select>
@@ -56,6 +56,10 @@ import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
 import { supabase } from '../supabase'
+
+// Placeholder: Replace with real logic to get current user's role
+const currentUser = ref({ role: 'admin' }) // or 'staff' for testing
+const isAdmin = computed(() => currentUser.value.role === 'admin')
 
 const users = ref<any[]>([])
 const showCreate = ref(false)

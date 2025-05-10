@@ -61,6 +61,8 @@ import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
 import { supabase } from '../supabase'
+import { sendEmailNotification } from '../services/notificationService'
+
 
 const audits = ref<any[]>([])
 const users = ref<any[]>([])
@@ -76,7 +78,21 @@ async function fetchUsers() {
   const { data, error } = await supabase.from('users').select('id, name')
   if (!error) users.value = data || []
 }
-onMounted(() => { fetchAudits(); fetchUsers() })
+let auditSubscription: any = null
+onMounted(() => {
+  fetchAudits();
+  fetchUsers();
+  // Real-time updates
+  auditSubscription = supabase
+    .channel('audits')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'audits' }, payload => {
+      fetchAudits()
+    })
+    .subscribe()
+})
+onUnmounted(() => {
+  if (auditSubscription) supabase.removeChannel(auditSubscription)
+})
 
 async function createAudit() {
   await supabase.from('audits').insert([
@@ -88,6 +104,24 @@ async function createAudit() {
   ])
   showCreate.value = false
   fetchAudits()
+  // Notify assigned users
+  const assigned = users.value.filter(u => newAudit.value.assigned_users.includes(u.id))
+  for (const user of assigned) {
+    // Email notification
+    if (user.email) {
+      await sendEmailNotification({
+        to: user.email,
+        subject: `New Audit Assigned: ${newAudit.value.title}`,
+        html: `<p>You have been assigned to the audit: <b>${newAudit.value.title}</b>.<br>Status: ${newAudit.value.status}</p>`
+      })
+    }
+    // In-app notification
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      title: `New Audit Assigned`,
+      message: `You have been assigned to the audit: ${newAudit.value.title}. Status: ${newAudit.value.status}`
+    })
+  }
 }
 
 function editAudit(audit: any) {
@@ -101,6 +135,24 @@ async function updateAudit() {
     status: editTarget.value.status,
     assigned_users: editTarget.value.assigned_users,
   }).eq('id', editTarget.value.id)
+  // Notify assigned users
+  const assigned = users.value.filter(u => editTarget.value.assigned_users.includes(u.id))
+  for (const user of assigned) {
+    // Email notification
+    if (user.email) {
+      await sendEmailNotification({
+        to: user.email,
+        subject: `Audit Updated: ${editTarget.value.title}`,
+        html: `<p>Your assigned audit has been updated: <b>${editTarget.value.title}</b>.<br>Status: ${editTarget.value.status}</p>`
+      })
+    }
+    // In-app notification
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      title: `Audit Updated`,
+      message: `Your assigned audit has been updated: ${editTarget.value.title}. Status: ${editTarget.value.status}`
+    })
+  }
   editTarget.value = null
   fetchAudits()
 }
