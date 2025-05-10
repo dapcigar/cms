@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import Layout from '../components/Layout.vue'
 import MultiStepForm from '../components/MultiStepForm.vue'
 const steps = [
@@ -163,8 +163,13 @@ async function submit() {
       if (uploadError) throw uploadError
       fileUrl = data?.path ? supabase.storage.from('safeguarding-files').getPublicUrl(data.path).publicUrl : ''
     }
+    const { data: users } = await supabase.from('auth.users').select('id, email')
+    const assignedUsers = form.value.assigned_users.split(',').map(u => u.trim())
+    const userQuery = assignedUsers.map(email => ({ email }))
+    const { data: userResults } = await supabase.from('auth.users').select('id').in('email', userQuery)
+    const userIds = userResults.map(user => user.id)
     const { error } = await supabase.from('safeguarding').insert([
-      { type: form.value.type, description: form.value.description, assigned_users: form.value.assigned_users.split(',').map(u => u.trim()), file_url: fileUrl }
+      { type: form.value.type, description: form.value.description, assigned_users: userIds, file_url: fileUrl }
     ])
     if (error) throw error
     success.value = true

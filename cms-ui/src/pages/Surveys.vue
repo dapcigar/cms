@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Layout from '../components/Layout.vue'
 import Table from '../components/Table.vue'
 import Button from '../components/Button.vue'
@@ -62,7 +62,14 @@ let surveySubscription: any = null
 
 async function fetchSurveys() {
   const { data, error } = await supabase.from('surveys').select('*')
-  if (!error) surveys.value = data?.map(s => ({ ...s, responses_count: s.responses?.length || 0 })) || []
+  if (error) {
+    console.error('Error fetching surveys:', error)
+    return
+  }
+  surveys.value = data?.map(s => ({
+    ...s,
+    responses_count: Array.isArray(s.responses) ? s.responses.length : 0
+  })) || []
 }
 
 onMounted(() => {

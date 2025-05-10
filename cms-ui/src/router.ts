@@ -60,9 +60,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/safeguarding/new',
+    name: 'SafeguardingLogForm',
+    component: () => import('./pages/SafeguardingLogForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/incidents',
     name: 'Incidents',
     component: () => import('./pages/Incidents.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/incidents/new',
+    name: 'IncidentCreateForm',
+    component: () => import('./pages/IncidentForm.vue'),
     meta: { requiresAuth: true }
   },
   {

@@ -13,14 +13,14 @@
           <th class="text-left p-4 bg-gray-50 font-medium text-slate-800">Actions</th>
         </template>
         <tr v-for="user in users" :key="user.id" class="border-t border-gray-100 hover:bg-gray-50/50">
-          <td class="p-4">{{ user.name }}</td>
+          <td class="p-4">{{ user.email }}</td>
           <td class="p-4">{{ user.email }}</td>
           <td class="p-4">
             <span :class="{
               'bg-primary/10 text-primary': user.role === 'admin',
               'bg-success/10 text-success': user.role === 'staff'
             }" class="px-2 py-1 rounded-full text-sm font-medium capitalize">
-              {{ user.role }}
+              {{ user.role || 'staff' }}
             </span>
           </td>
           <td class="p-4">
@@ -103,24 +103,43 @@ const newUser = ref({ name: '', email: '', password: '', role: 'staff' })
 const editTarget = ref<any | null>(null)
 
 async function fetchUsers() {
-  const { data, error } = await supabase.from('users').select('*')
-  if (!error) users.value = data || []
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, role, created_at')
+      .order('email')
+
+    if (error) throw error
+    users.value = data || []
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    users.value = []
+  }
 }
 onMounted(fetchUsers)
 
 async function createUser() {
-  // Create user in Supabase Auth and store profile in users table
-  const { data, error } = await supabase.auth.admin.createUser({
-    email: newUser.value.email,
-    password: newUser.value.password,
-    user_metadata: { name: newUser.value.name, role: newUser.value.role },
-  })
-  if (!error) {
-    await supabase.from('users').insert([
-      { id: data.user.id, name: newUser.value.name, email: newUser.value.email, role: newUser.value.role },
-    ])
+  try {
+    // Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: newUser.value.email,
+      password: newUser.value.password,
+      email_confirm: true,
+      user_metadata: { 
+        name: newUser.value.name,
+        role: newUser.value.role 
+      }
+    })
+
+    if (authError) throw authError
+
+    // Clear form and refresh
+    newUser.value = { name: '', email: '', password: '', role: 'staff' }
     showCreate.value = false
-    fetchUsers()
+    await fetchUsers()
+  } catch (error) {
+    console.error('Error creating user:', error)
+    // You can add toast notification here
   }
 }
 
@@ -130,12 +149,19 @@ function editUser(user: any) {
 
 async function updateUser() {
   if (!editTarget.value) return
-  await supabase.from('users').update({
-    name: editTarget.value.name,
-    email: editTarget.value.email,
-    role: editTarget.value.role,
-  }).eq('id', editTarget.value.id)
-  editTarget.value = null
-  fetchUsers()
+  
+  try {
+    const { error } = await supabase.from('profiles').update({
+      role: editTarget.value.role
+    }).eq('id', editTarget.value.id)
+
+    if (error) throw error
+
+    editTarget.value = null
+    await fetchUsers()
+  } catch (error) {
+    console.error('Error updating user:', error)
+    // You can add toast notification here
+  }
 }
 </script>

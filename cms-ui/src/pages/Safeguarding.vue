@@ -49,9 +49,9 @@
           </div>
         </div>
         <div class="mt-auto flex gap-2">
-          <Button color="secondary" size="sm" @click="editCase(caseItem)">Edit</Button>
+          <Button color="secondary" size="sm" @click.prevent="editCase(caseItem)">Edit</Button>
         </div>
-      </div>
+      </router-link>
     </div>
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Safeguarding Case</h2>
@@ -115,7 +115,7 @@ let safeguardingSubscription: any = null
 
 function getUserName(id: string) {
   const user = users.value.find(u => u.id === id)
-  return user ? user.name : id
+  return user ? user.email : id
 }
 
 async function fetchCases() {
@@ -135,10 +135,10 @@ async function fetchCases() {
 
 async function fetchUsers() {
   const { data, error } = await supabase
-    .from('users')
-    .select('id, name')
-    .order('name')
-
+    .from('profiles')
+    .select('id, email')
+    .order('email')
+  
   if (error) {
     console.error('Error fetching users:', error)
     return

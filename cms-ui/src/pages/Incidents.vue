@@ -14,6 +14,18 @@
         class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
         style="color: inherit;"
       >
+        <style scoped>
+          /* Design system colors */
+          :root {
+            --color-primary: #0070F3;
+            --color-accent: #FF7A59;
+            --color-background: #F9FAFB;
+            --color-text: #1F2937;
+            --color-success: #10B981;
+            --color-error: #EF4444;
+            --color-info: #3B82F6;
+          }
+        </style>
         <div class="flex items-center justify-between mb-2">
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',
@@ -23,27 +35,27 @@
           </span>
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',
-            item.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'
+            incident.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'
           ]">
-            {{ item.status.charAt(0).toUpperCase() + item.status.slice(1) }}
+            {{ incident.status.charAt(0).toUpperCase() + incident.status.slice(1) }}
           </span>
         </div>
         <div class="mb-2">
           <div class="text-xs text-gray-500 mb-1">Description:</div>
-          <div class="text-base text-primary font-medium">{{ item.description }}</div>
+          <div class="text-base text-primary font-medium">{{ incident.description }}</div>
         </div>
         <div class="mb-2">
           <div class="text-xs text-gray-500 mb-1">Assigned Users:</div>
           <div class="flex flex-wrap gap-1">
-            <span v-for="userId in item.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+            <span v-for="userId in incident.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
               {{ getUserName(userId) }}
             </span>
           </div>
         </div>
         <div class="mt-auto flex gap-2">
-          <Button color="secondary" size="sm" @click="editIncident(item)">Edit</Button>
+          <Button color="secondary" size="sm" @click="editIncident(incident)">Edit</Button>
         </div>
-      </div>
+      </router-link>
     </div>
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Incident/Complaint</h2>
@@ -105,14 +117,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Layout from '../components/Layout.vue'
+import Card from '../components/Card.vue'
 import Table from '../components/Table.vue'
 import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
 import { supabase } from '../supabase'
 import { sendEmailNotification } from '../services/notificationService'
+import { generateUUID } from '../utils/uuid'
 
 const incidents = ref<any[]>([])
 const users = ref<any[]>([])
@@ -133,16 +147,41 @@ const editTarget = ref<any | null>(null)
 
 function getUserName(id: string) {
   const user = users.value.find(u => u.id === id)
-  return user ? user.name : id
+  return user ? user.email : id
 }
 
 async function fetchIncidents() {
-  const { data, error } = await supabase.from('incidents').select('*')
-  if (!error) incidents.value = data || []
+  try {
+    const { data, error } = await supabase
+      .from('incidents')
+      .select(`
+        id,
+        type,
+        description,
+        status,
+        assigned_users,
+        created_at,
+        updated_at
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    incidents.value = data || []
+  } catch (error) {
+    console.error('Error fetching incidents:', error)
+    incidents.value = []
+  }
 }
 async function fetchUsers() {
-  const { data, error } = await supabase.from('users').select('id, name')
-  if (!error) users.value = data || []
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email')
+    .order('email')
+  if (error) {
+    console.error('Error fetching users:', error)
+    return
+  }
+  users.value = data || []
 }
 let incidentSubscription: any = null
 onMounted(() => {
@@ -164,36 +203,36 @@ onUnmounted(() => {
 })
 
 async function createIncident() {
-  await supabase.from('incidents').insert([
-    {
-      type: newIncident.value.type,
-      description: newIncident.value.description,
-      status: newIncident.value.status,
-      assigned_users: newIncident.value.assigned_users,
-      action_plan_ids: newIncident.value.action_plan_ids,
-      audit_ids: newIncident.value.audit_ids,
-      safeguarding_case_ids: newIncident.value.safeguarding_case_ids
-    },
-  ])
-  showCreate.value = false
-  fetchIncidents()
-  // Notify assigned users
-  const assigned = users.value.filter(u => newIncident.value.assigned_users.includes(u.id))
-  for (const user of assigned) {
-    // Email notification
-    if (user.email) {
-      await sendEmailNotification({
-        to: user.email,
-        subject: `New Incident Assigned: ${newIncident.value.type}`,
-        html: `<p>You have been assigned to the incident: <b>${newIncident.value.type}</b>.<br>Description: ${newIncident.value.description}<br>Status: ${newIncident.value.status}</p>`
+  try {
+    const incidentData = {
+      ...newIncident.value,
+      id: generateUUID(),
+      created_at: new Date().toISOString(),
+    }
+    const { error } = await supabase.from('incidents').insert([incidentData])
+    if (error) throw error
+    showCreate.value = false
+    fetchIncidents()
+    // Notify assigned users
+    const assigned = users.value.filter(u => newIncident.value.assigned_users.includes(u.id))
+    for (const user of assigned) {
+      // Email notification
+      if (user.email) {
+        await sendEmailNotification({
+          to: user.email,
+          subject: `New Incident Assigned: ${newIncident.value.type}`,
+          html: `<p>You have been assigned to the incident: <b>${newIncident.value.type}</b>.<br>Description: ${newIncident.value.description}<br>Status: ${newIncident.value.status}</p>`
+        })
+      }
+      // In-app notification
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: `New Incident Assigned`,
+        message: `You have been assigned to the incident: ${newIncident.value.type}. Status: ${newIncident.value.status}`
       })
     }
-    // In-app notification
-    await supabase.from('notifications').insert({
-      user_id: user.id,
-      title: `New Incident Assigned`,
-      message: `You have been assigned to the incident: ${newIncident.value.type}. Status: ${newIncident.value.status}`
-    })
+  } catch (error) {
+    console.error('Error creating incident:', error)
   }
 }
 
@@ -203,39 +242,63 @@ function editIncident(item: any) {
 
 async function updateIncident() {
   if (!editTarget.value) return
-  await supabase.from('incidents').update({
-    type: editTarget.value.type,
-    description: editTarget.value.description,
-    status: editTarget.value.status,
-    assigned_users: editTarget.value.assigned_users,
-    action_plan_ids: editTarget.value.action_plan_ids,
-    audit_ids: editTarget.value.audit_ids,
-    safeguarding_case_ids: editTarget.value.safeguarding_case_ids
-  }).eq('id', editTarget.value.id)
-  // Notify assigned users
-  const assigned = users.value.filter(u => editTarget.value.assigned_users.includes(u.id))
-  for (const user of assigned) {
-    if (user.email) {
-      await sendEmailNotification({
-        to: user.email,
-        subject: `Incident Updated: ${editTarget.value.type}`,
-        html: `<p>Your assigned incident has been updated: <b>${editTarget.value.type}</b>.<br>Description: ${editTarget.value.description}<br>Status: ${editTarget.value.status}</p>`
+  try {
+    await supabase.from('incidents').update({
+      type: editTarget.value.type,
+      description: editTarget.value.description,
+      status: editTarget.value.status,
+      assigned_users: editTarget.value.assigned_users,
+      action_plan_ids: editTarget.value.action_plan_ids,
+      audit_ids: editTarget.value.audit_ids,
+      safeguarding_case_ids: editTarget.value.safeguarding_case_ids
+    }).eq('id', editTarget.value.id)
+    
+    // Notify assigned users
+    const assigned = users.value.filter(u => editTarget.value.assigned_users.includes(u.id))
+    for (const user of assigned) {
+      if (user.email) {
+        await sendEmailNotification({
+          to: user.email,
+          subject: `Incident Updated: ${editTarget.value.type}`,
+          html: `<p>Your assigned incident has been updated: <b>${editTarget.value.type}</b>.<br>Description: ${editTarget.value.description}<br>Status: ${editTarget.value.status}</p>`
+        })
+      }
+      // In-app notification
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: `Incident Updated`,
+        message: `Incident ${editTarget.value.type} has been updated. Status: ${editTarget.value.status}`
       })
     }
+    
+    editTarget.value = null
+    await fetchIncidents()
+  } catch (error) {
+    console.error('Error updating incident:', error)
   }
-  editTarget.value = null
-  fetchIncidents()
 }
 async function fetchActionPlans() {
   const { data, error } = await supabase.from('action_plans').select('id, name')
-  if (!error) actionPlans.value = data || []
+  if (error) {
+    console.error('Error fetching action plans:', error)
+    return
+  }
+  actionPlans.value = data || []
 }
 async function fetchAudits() {
-  const { data, error } = await supabase.from('audits').select('id, title')
-  if (!error) audits.value = data || []
+  const { data, error } = await supabase.from('profiles').select('id, email, role')
+  if (error) {
+    console.error('Error fetching audits:', error)
+    return
+  }
+  audits.value = data || []
 }
 async function fetchSafeguardingCases() {
   const { data, error } = await supabase.from('safeguarding').select('id, type, description')
-  if (!error) safeguardingCases.value = data || []
+  if (error) {
+    console.error('Error fetching safeguarding cases:', error)
+    return
+  }
+  safeguardingCases.value = data || []
 }
 </script>
