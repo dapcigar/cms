@@ -1,50 +1,83 @@
 <template>
-  <Transition name="slide">
-    <aside
-      :class="[
-        'h-full flex flex-col py-6 px-3 shadow-lg transition-all duration-300',
-        'bg-white border-r border-gray-200',
-        collapsed ? 'w-20' : 'w-64',
-        'fixed md:relative z-40'
-      ]"
-    >
-    <nav class="flex-1">
-      <ul class="space-y-2">
-        <li v-for="item in navItems" :key="item.label">
+  <aside class="sidebar" :class="{'sidebar-collapsed': collapsed}">
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <li v-for="item in navItems" :key="item.path" class="nav-item">
           <a
             href="#"
             @click.prevent="navigateTo(item.path)"
-            class="flex items-center px-3 py-3 rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
+            class="nav-link"
             :class="{
-              'bg-primary text-white': isActive(item),
-              'text-primary': !isActive(item)
+              'active': isActive(item),
+              'collapsed-item': collapsed
             }"
           >
-            <span class="material-icons mr-2 text-2xl" :class="collapsed ? 'mx-auto' : ''">{{ item.icon }}</span>
-            <span v-if="!collapsed" class="ml-1">{{ item.label }}</span>
-            <span v-if="!collapsed && item.label === 'Notifications'" class="ml-2 bg-accent text-white rounded-full px-2 py-0.5 text-xs font-bold">3</span>
+            <span class="nav-icon material-icons">{{ item.icon }}</span>
+            <span v-if="!collapsed" class="nav-label">{{ item.label }}</span>
+            <span 
+              v-if="!collapsed && item.label === 'Notifications'" 
+              class="nav-badge"
+            >3</span>
           </a>
         </li>
       </ul>
     </nav>
+    
+    <!-- Collapse toggle button -->
     <button
-      class="mt-4 mb-2 mx-auto flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
+      v-if="!isMobile"
+      class="collapse-button"
       @click="toggleCollapse"
       :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
     >
       <span class="material-icons">{{ collapsed ? 'chevron_right' : 'chevron_left' }}</span>
     </button>
-      </aside>
-  </Transition>
+    
+    <!-- Close button for mobile -->
+    <button
+      v-if="isMobile"
+      class="close-button"
+      @click="$emit('close')"
+      aria-label="Close menu"
+    >
+      <span class="material-icons">close</span>
+    </button>
+  </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
+// Props
+const props = defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
+  }
+})
+
+// Emits
+const emit = defineEmits(['toggle-collapse', 'close'])
 
 const route = useRoute()
 const router = useRouter()
-const collapsed = ref(false)
+
+// Detect if on mobile
+const isMobile = ref(window.innerWidth < 768)
+
+// Handle window resize
+function handleResize() {
+  isMobile.value = window.innerWidth < 768
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
@@ -60,7 +93,7 @@ const navItems = [
 ]
 
 function toggleCollapse() {
-  collapsed.value = !collapsed.value
+  emit('toggle-collapse')
 }
 
 function isActive(item) {
@@ -69,28 +102,145 @@ function isActive(item) {
 
 function navigateTo(path: string) {
   router.push(path)
+  
+  // Close sidebar on mobile after navigation
+  if (isMobile.value) {
+    emit('close')
+  }
 }
 </script>
 
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+  border-right: 1px solid #E5E7EB;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  width: 240px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  padding: 1.5rem 0.75rem;
 }
 
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-100%);
+.sidebar-collapsed {
+  width: 64px;
 }
 
-@media (max-width: 768px) {
-  aside {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    z-index: 50;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.07);
-  }
+.sidebar-nav {
+  flex: 1;
+  margin-top: 0.5rem;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-item {
+  width: 100%;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-height: 48px; /* Larger touch target */
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 112, 243, 0.1);
+  color: var(--color-primary);
+}
+
+.nav-link.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-label {
+  margin-left: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nav-badge {
+  margin-left: 0.5rem;
+  background-color: var(--color-accent);
+  color: white;
+  border-radius: 9999px;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 1.25rem;
+  text-align: center;
+}
+
+.collapsed-item {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.collapse-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 112, 243, 0.1);
+  color: var(--color-primary);
+  margin: 1rem auto 0.5rem auto;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapse-button:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 </style>
