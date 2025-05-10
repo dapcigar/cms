@@ -6,13 +6,21 @@
         <Button color="primary">New Safeguarding Case</Button>
       </router-link>
     </div>
-    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+    <div v-if="loading" class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+
+    <div v-else-if="!cases.length" class="text-center py-12">
+      <div class="text-gray-500 mb-4">No safeguarding cases found</div>
+      <Button color="primary" @click="showCreate = true">Create Your First Case</Button>
+    </div>
+
+    <div v-else class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
       <router-link
         v-for="caseItem in cases"
         :key="caseItem.id"
         :to="{ name: 'SafeguardingDetail', params: { id: caseItem.id } }"
-        class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
-        style="color: inherit;"
+        class="block card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white p-4 rounded-lg no-underline group"
       >
         <div class="flex items-center justify-between mb-2">
           <span :class="[
@@ -79,9 +87,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Layout from '../components/Layout.vue'
-import Table from '../components/Table.vue'
 import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
@@ -89,9 +96,22 @@ import { supabase } from '../supabase'
 
 const cases = ref<any[]>([])
 const users = ref<any[]>([])
+const loading = ref(true)
 const showCreate = ref(false)
-const newCase = ref({ type: '', description: '', status: 'open', assigned_users: [] })
+const errors = ref({
+  type: '',
+  description: ''
+})
+
+const newCase = ref({
+  type: '',
+  description: '',
+  status: 'open',
+  assigned_users: []
+})
+
 const editTarget = ref<any | null>(null)
+let safeguardingSubscription: any = null
 
 function getUserName(id: string) {
   const user = users.value.find(u => u.id === id)
@@ -99,12 +119,32 @@ function getUserName(id: string) {
 }
 
 async function fetchCases() {
-  const { data, error } = await supabase.from('safeguarding').select('*')
-  if (!error) cases.value = data || []
+  const { data, error } = await supabase
+    .from('safeguarding')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching cases:', error)
+    return
+  }
+
+  cases.value = data || []
+  loading.value = false
 }
+
 async function fetchUsers() {
-  const { data, error } = await supabase.from('users').select('id, name')
-  if (!error) users.value = data || []
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name')
+    .order('name')
+
+  if (error) {
+    console.error('Error fetching users:', error)
+    return
+  }
+
+  users.value = data || []
 }
 onMounted(() => {
   fetchCases();
@@ -117,21 +157,64 @@ onMounted(() => {
     })
     .subscribe()
 })
+
 onUnmounted(() => {
   if (safeguardingSubscription) supabase.removeChannel(safeguardingSubscription)
 })
 
 async function createCase() {
-  await supabase.from('safeguarding').insert([
-    {
-      type: newCase.value.type,
-      description: newCase.value.description,
-      status: newCase.value.status,
-      assigned_users: newCase.value.assigned_users,
-    },
-  ])
-  showCreate.value = false
-  fetchCases()
+  // Reset errors
+  errors.value = {
+    type: '',
+    description: ''
+  }
+
+  // Validate
+  if (!newCase.value.type.trim()) {
+    errors.value.type = 'Type is required'
+    return
+  }
+
+  if (!newCase.value.description.trim()) {
+    errors.value.description = 'Description is required'
+    return
+  }
+
+  loading.value = true
+
+  try {
+    const { data, error } = await supabase
+      .from('safeguarding')
+      .insert([{
+        type: newCase.value.type.trim(),
+        description: newCase.value.description.trim(),
+        status: newCase.value.status,
+        assigned_users: newCase.value.assigned_users,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Notify assigned users
+    await Promise.all(newCase.value.assigned_users.map(userId =>
+      supabase.from('notifications').insert({
+        user_id: userId,
+        title: 'New Safeguarding Case',
+        message: `You have been assigned to a new safeguarding case: ${newCase.value.type}`,
+        created_at: new Date().toISOString()
+      })
+    ))
+
+    showCreate.value = false
+    newCase.value = { type: '', description: '', status: 'open', assigned_users: [] }
+    await fetchCases()
+  } catch (error) {
+    console.error('Error creating case:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 function editCase(caseItem: any) {
@@ -140,13 +223,60 @@ function editCase(caseItem: any) {
 
 async function updateCase() {
   if (!editTarget.value) return
-  await supabase.from('safeguarding').update({
-    type: editTarget.value.type,
-    description: editTarget.value.description,
-    status: editTarget.value.status,
-    assigned_users: editTarget.value.assigned_users,
-  }).eq('id', editTarget.value.id)
-  editTarget.value = null
-  fetchCases()
+
+  // Reset errors
+  errors.value = {
+    type: '',
+    description: ''
+  }
+
+  // Validate
+  if (!editTarget.value.type.trim()) {
+    errors.value.type = 'Type is required'
+    return
+  }
+
+  if (!editTarget.value.description.trim()) {
+    errors.value.description = 'Description is required'
+    return
+  }
+
+  loading.value = true
+
+  try {
+    const { error } = await supabase
+      .from('safeguarding')
+      .update({
+        type: editTarget.value.type.trim(),
+        description: editTarget.value.description.trim(),
+        status: editTarget.value.status,
+        assigned_users: editTarget.value.assigned_users,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', editTarget.value.id)
+
+    if (error) throw error
+
+    // Notify newly assigned users
+    const newAssignees = editTarget.value.assigned_users.filter(
+      (userId: string) => !editTarget.value.original_assigned_users.includes(userId)
+    )
+
+    await Promise.all(newAssignees.map(userId =>
+      supabase.from('notifications').insert({
+        user_id: userId,
+        title: 'Safeguarding Case Assignment',
+        message: `You have been assigned to a safeguarding case: ${editTarget.value.type}`,
+        created_at: new Date().toISOString()
+      })
+    ))
+
+    editTarget.value = null
+    await fetchCases()
+  } catch (error) {
+    console.error('Error updating case:', error)
+  } finally {
+    loading.value = false
+  }
 }
 </script>

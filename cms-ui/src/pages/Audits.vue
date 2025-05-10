@@ -11,29 +11,34 @@
         v-for="audit in audits"
         :key="audit.id"
         :to="{ name: 'AuditDetail', params: { id: audit.id } }"
-        class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
-        style="color: inherit;"
+        class="block no-underline"
       >
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-bold text-lg text-primary">{{ audit.title }}</span>
-          <span :class="[
-            'rounded-full px-3 py-1 text-xs font-semibold',
-            audit.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'
-          ]">
-            {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
-          </span>
-        </div>
-        <div class="mb-2">
-          <div class="text-xs text-gray-500 mb-1">Assigned Users:</div>
-          <div class="flex flex-wrap gap-1">
-            <span v-for="userId in audit.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
-              {{ getUserName(userId) }}
+        <div class="p-4 h-full card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-bold text-lg text-primary">{{ audit.title }}</span>
+            <span :class="[
+              'rounded-full px-3 py-1 text-xs font-semibold',
+              audit.status === 'open' ? 'bg-success/10 text-success' : 'bg-secondary/10 text-secondary'
+            ]">
+              {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
             </span>
           </div>
+          <div class="mb-4">
+            <div class="text-xs text-gray-500 mb-2">Assigned Users:</div>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="userId in audit.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+                {{ getUserName(userId) }}
+              </span>
+              <span v-if="!audit.assigned_users?.length" class="text-xs text-gray-400">No users assigned</span>
+            </div>
+          </div>
+          <div class="mt-auto flex gap-2">
+            <Button color="primary" size="sm" @click.prevent="editAudit(audit)">Edit</Button>
+          </div>
         </div>
-        <div class="mt-auto flex gap-2">
-          <Button color="secondary" size="sm" @click="editAudit(audit)">Edit</Button>
-        </div>
+      </router-link>
+      <div v-if="audits.length === 0" class="col-span-full text-center py-8 text-gray-500">
+        No audits found. Click "New Audit" to create one.
       </div>
     </div>
     <Modal :show="showCreate" @close="showCreate = false">
@@ -68,14 +73,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Layout from '../components/Layout.vue'
+import Card from '../components/Card.vue'
 import Table from '../components/Table.vue'
 import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
 import { supabase } from '../supabase'
-import { sendEmailNotification } from '../services/notificationService'
 
 
 const audits = ref<any[]>([])
@@ -90,12 +95,30 @@ function getUserName(id: string) {
 }
 
 async function fetchAudits() {
-  const { data, error } = await supabase.from('audits').select('*')
-  if (!error) audits.value = data || []
+  const { data, error } = await supabase
+    .from('audits')
+    .select('id, title, status, description, assigned_users, created_at')
+    .order('created_at', { ascending: false })
+  
+  if (error) {
+    console.error('Error fetching audits:', error)
+    return
+  }
+  
+  audits.value = data || []
 }
 async function fetchUsers() {
-  const { data, error } = await supabase.from('users').select('id, name')
-  if (!error) users.value = data || []
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name, email')
+    .order('name')
+  
+  if (error) {
+    console.error('Error fetching users:', error)
+    return
+  }
+  
+  users.value = data || []
 }
 let auditSubscription: any = null
 onMounted(() => {
@@ -114,33 +137,38 @@ onUnmounted(() => {
 })
 
 async function createAudit() {
-  await supabase.from('audits').insert([
-    {
-      title: newAudit.value.title,
-      status: newAudit.value.status,
-      assigned_users: newAudit.value.assigned_users,
-    },
-  ])
-  showCreate.value = false
-  fetchAudits()
+  const { data, error } = await supabase
+    .from('audits')
+    .insert([
+      {
+        title: newAudit.value.title,
+        status: newAudit.value.status,
+        assigned_users: newAudit.value.assigned_users,
+        created_at: new Date().toISOString()
+      },
+    ])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating audit:', error)
+    return
+  }
+
   // Notify assigned users
   const assigned = users.value.filter(u => newAudit.value.assigned_users.includes(u.id))
   for (const user of assigned) {
-    // Email notification
-    if (user.email) {
-      await sendEmailNotification({
-        to: user.email,
-        subject: `New Audit Assigned: ${newAudit.value.title}`,
-        html: `<p>You have been assigned to the audit: <b>${newAudit.value.title}</b>.<br>Status: ${newAudit.value.status}</p>`
-      })
-    }
-    // In-app notification
     await supabase.from('notifications').insert({
       user_id: user.id,
-      title: `New Audit Assigned`,
-      message: `You have been assigned to the audit: ${newAudit.value.title}. Status: ${newAudit.value.status}`
+      title: 'New Audit Assigned',
+      message: `You have been assigned to the audit: ${newAudit.value.title}`,
+      created_at: new Date().toISOString()
     })
   }
+
+  showCreate.value = false
+  newAudit.value = { title: '', status: 'open', assigned_users: [] }
+  fetchAudits()
 }
 
 function editAudit(audit: any) {

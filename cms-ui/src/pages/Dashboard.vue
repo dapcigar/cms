@@ -66,20 +66,11 @@ import Layout from '../components/Layout.vue'
 import Card from '../components/Card.vue'
 import Modal from '../components/Modal.vue'
 import Button from '../components/Button.vue'
+import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from 'chart.js'
 import { Bar, Pie } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement
-} from 'chart.js'
 import { supabase } from '../supabase'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
+ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend)
 
 const stats = ref({ users: 0, openAudits: 0, openIncidents: 0, auditCompletion: 0 })
 const dateRange = ref({ start: '', end: '' })
@@ -164,14 +155,15 @@ async function fetchStats() {
   // Fetch audit completion for bar chart
   const { data: auditsAll } = await supabase.from('audits').select('status')
   const completedAudits = auditsAll?.filter((a: any) => a.status === 'closed').length || 0
-  const openAudits = auditsAll?.filter((a: any) => a.status === 'open').length || 0
-  auditBarData.value.datasets[0].data = [completedAudits, openAudits]
+  const openAuditsCount = auditsAll?.filter((a: any) => a.status === 'open').length || 0
+  auditBarData.value.datasets[0].data = [completedAudits, openAuditsCount]
 
   // Fetch incident resolution for pie chart
   const { data: incidentsAll } = await supabase.from('incidents').select('status')
   const resolvedIncidents = incidentsAll?.filter((i: any) => i.status === 'closed').length || 0
   const openIncidentsPie = incidentsAll?.filter((i: any) => i.status === 'open').length || 0
   incidentPieData.value.datasets[0].data = [resolvedIncidents, openIncidentsPie]
+}
 
 onMounted(fetchStats)
 </script>

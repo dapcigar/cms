@@ -2,45 +2,48 @@
 module.exports = {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
+    "./src/**/*.{vue,js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#2563eb', // vibrant blue
-          light: '#60a5fa',
-          dark: '#1e40af',
-        },
-        secondary: {
-          DEFAULT: '#22c55e', // vibrant green
-          light: '#86efac',
-          dark: '#166534',
-        },
-        accent: {
-          DEFAULT: '#f59e42', // vibrant orange
-          light: '#fbbf24',
-          dark: '#b45309',
+        primary: '#0070F3', // Vibrant Blue
+        accent: '#FF7A59', // Coral Orange
+        success: '#10B981', // Emerald
+        error: '#EF4444', // Red
+        info: '#3B82F6', // Blue
+        slate: {
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#64748B',
+          600: '#475569',
+          700: '#334155',
+          800: '#1F2937', // Text color
+          900: '#0F172A',
         },
         gray: {
-          50: '#f9fafb',
-          100: '#f3f4f6',
-          200: '#e5e7eb',
-          300: '#d1d5db',
-          400: '#9ca3af',
-          500: '#6b7280',
-          600: '#4b5563',
+          50: '#F9FAFB', // Background color
+          100: '#F3F4F6',
+          200: '#E5E7EB',
+          300: '#D1D5DB',
+          400: '#9CA3AF',
+          500: '#6B7280',
+          600: '#4B5563',
           700: '#374151',
-          800: '#1f2937',
+          800: '#1F2937',
           900: '#111827',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Roboto', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        heading: ['Inter', 'Roboto', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       ringColor: {
-        accent: '#f59e42',
+        primary: '#0070F3',
+        accent: '#FF7A59',
       },
       borderRadius: {
         'xl': '1rem',
@@ -48,8 +51,11 @@ module.exports = {
         '3xl': '2rem',
       },
       boxShadow: {
-        'md': '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
-        'xl': '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+        'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
       },
       transitionProperty: {
         'height': 'height',

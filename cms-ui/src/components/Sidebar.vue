@@ -3,7 +3,7 @@
     <aside
       :class="[
         'h-full flex flex-col py-6 px-3 shadow-lg transition-all duration-300',
-        'bg-surface border-r border-gray-200',
+        'bg-white border-r border-gray-200',
         collapsed ? 'w-20' : 'w-64',
         'fixed md:relative z-40'
       ]"
@@ -12,7 +12,8 @@
       <ul class="space-y-2">
         <li v-for="item in navItems" :key="item.label">
           <a
-            :href="item.href"
+            href="#"
+            @click.prevent="navigateTo(item.path)"
             class="flex items-center px-3 py-3 rounded-xl transition-all hover:bg-primary/10 hover:text-primary"
             :class="{
               'bg-primary text-white': isActive(item),
@@ -21,7 +22,7 @@
           >
             <span class="material-icons mr-2 text-2xl" :class="collapsed ? 'mx-auto' : ''">{{ item.icon }}</span>
             <span v-if="!collapsed" class="ml-1">{{ item.label }}</span>
-            <span v-if="item.label === 'Notifications'" class="ml-2 bg-accent text-white rounded-full px-2 py-0.5 text-xs font-bold" v-if="!collapsed">3</span>
+            <span v-if="!collapsed && item.label === 'Notifications'" class="ml-2 bg-accent text-white rounded-full px-2 py-0.5 text-xs font-bold">3</span>
           </a>
         </li>
       </ul>
@@ -38,26 +39,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
 const collapsed = ref(false)
+
 const navItems = [
-  { label: 'Dashboard', href: '#', icon: 'dashboard' },
-  { label: 'Users & Roles', href: '#', icon: 'people' },
-  { label: 'Audits', href: '#', icon: 'assignment' },
-  { label: 'Action Plans', href: '#', icon: 'check_circle' },
-  { label: 'Safeguarding', href: '#', icon: 'security' },
-  { label: 'Incidents', href: '#', icon: 'report' },
-  { label: 'Surveys', href: '#', icon: 'poll' },
-  { label: 'Analytics', href: '#', icon: 'insights' },
-  { label: 'Notifications', href: '#', icon: 'notifications' },
-  { label: 'Settings', href: '#', icon: 'settings' },
-];
+  { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
+  { label: 'Users & Roles', path: '/users', icon: 'people' },
+  { label: 'Audits', path: '/audits', icon: 'assignment' },
+  { label: 'Action Plans', path: '/action-plans', icon: 'check_circle' },
+  { label: 'Safeguarding', path: '/safeguarding', icon: 'security' },
+  { label: 'Incidents', path: '/incidents', icon: 'report' },
+  { label: 'Surveys', path: '/surveys', icon: 'poll' },
+  { label: 'Analytics', path: '/analytics', icon: 'insights' },
+  { label: 'Notifications', path: '/notifications', icon: 'notifications' },
+  { label: 'Settings', path: '/settings', icon: 'settings' },
+]
+
 function toggleCollapse() {
   collapsed.value = !collapsed.value
 }
+
 function isActive(item) {
-  // Replace with real route check if using Vue Router
-  return window.location.hash === item.href
+  return route.path === item.path
+}
+
+function navigateTo(path: string) {
+  router.push(path)
 }
 </script>
 
