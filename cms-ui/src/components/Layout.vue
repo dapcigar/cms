@@ -1,6 +1,12 @@
 <template>
   <div class="app-layout">
-    <Navbar @toggle-sidebar="toggleSidebar" :collapsed="sidebarCollapsed" />
+    <Navbar 
+      @toggle-sidebar="toggleSidebar" 
+      @show-notifications="handleNotifications"
+      @show-settings="handleSettings"
+      @show-profile="handleProfile"
+      :collapsed="sidebarCollapsed" 
+    />
     <div class="layout-container">
       <!-- Desktop Sidebar - Collapsible -->
       <Sidebar 
@@ -57,6 +63,25 @@ function toggleSidebar() {
 
 function closeMobileSidebar() {
   showMobileSidebar.value = false
+}
+
+// Handle navbar button clicks
+function handleNotifications() {
+  console.log('Notifications clicked in Layout')
+  // You can implement a modal or navigation here
+  // For example: showNotificationsModal.value = true
+}
+
+function handleSettings() {
+  console.log('Settings clicked in Layout')
+  // Navigate to settings or show settings modal
+  // For example: router.push('/settings')
+}
+
+function handleProfile() {
+  console.log('Profile clicked in Layout')
+  // Navigate to profile or show profile dropdown
+  // For example: router.push('/profile')
 }
 </script>
 
@@ -128,11 +153,18 @@ function closeMobileSidebar() {
 /* Main content area */
 .main-content {
   flex: 1;
-  background-color: #F9FAFB; /* Background color from design system */
-  padding: 1.5rem;
+  background-color: var(--color-background, #F9FAFB);
+  padding: 2rem;
   overflow-y: auto;
   margin-left: 240px;
-  transition: margin-left 0.3s ease;
+  transition: all 0.3s ease;
+  min-height: calc(100vh - 64px); /* Full height minus navbar */
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  color: var(--color-text, #1F2937);
+  font-family: 'Inter', 'Open Sans', sans-serif;
+  line-height: 1.5;
 }
 
 .main-content-expanded {

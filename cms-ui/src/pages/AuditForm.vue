@@ -8,33 +8,34 @@
         </router-link>
       </div>
 
-      <Card class="p-6">
-        <form @submit.prevent="createAudit" class="space-y-6">
-          <div>
-            <label class="block text-sm font-medium mb-2">Title</label>
+      <Card type="primary" class="audit-card">
+        <form @submit.prevent="createAudit" class="audit-form">
+          <div class="form-group">
+            <label class="form-label">Title</label>
             <Input 
               v-model="audit.title" 
               placeholder="Enter audit title" 
               :error="errors.title"
               required
+              class="form-input"
             />
           </div>
 
-          <div>
-            <label class="block text-sm font-medium mb-2">Description</label>
+          <div class="form-group">
+            <label class="form-label">Description</label>
             <textarea
               v-model="audit.description"
               rows="4"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              class="form-textarea"
               placeholder="Enter audit description"
             ></textarea>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium mb-2">Status</label>
+          <div class="form-group">
+            <label class="form-label">Status</label>
             <select 
               v-model="audit.status"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              class="form-select"
               required
             >
               <option value="open">Open</option>
@@ -42,12 +43,12 @@
             </select>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium mb-2">Assigned Users</label>
+          <div class="form-group">
+            <label class="form-label">Assigned Users</label>
             <select
               v-model="audit.assigned_users"
               multiple
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              class="form-select"
               :class="{ 'border-error': errors.assigned_users }"
               required
             >
@@ -55,11 +56,11 @@
                 {{ user.name }}
               </option>
             </select>
-            <p v-if="errors.assigned_users" class="mt-1 text-xs text-error">{{ errors.assigned_users }}</p>
-            <p v-else class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select multiple users</p>
+            <p v-if="errors.assigned_users" class="form-error">{{ errors.assigned_users }}</p>
+            <p v-else class="form-help">Hold Ctrl/Cmd to select multiple users</p>
           </div>
 
-          <div class="pt-4">
+          <div class="form-actions">
             <Button 
               type="submit" 
               color="primary" 
@@ -174,3 +175,102 @@ async function createAudit() {
 
 onMounted(fetchUsers)
 </script>
+
+<style scoped>
+.audit-card {
+  padding: 1.75rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.audit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+.form-select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  background-color: white;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+.form-select[multiple] {
+  height: 8rem;
+  background-image: none;
+  padding-right: 0.75rem;
+}
+
+.form-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-error);
+}
+
+.form-help {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(31, 41, 55, 0.7);
+}
+
+.form-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.border-error {
+  border-color: var(--color-error);
+}
+</style>

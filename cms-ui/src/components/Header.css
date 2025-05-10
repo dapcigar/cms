@@ -1,0 +1,71 @@
+/* Header Right Styling */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Icon Button Styling */
+.icon-button {
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1F2937;
+  transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 112, 243, 0.1);
+  color: #0070F3;
+}
+
+/* Notification Button and Badge */
+.notification-button {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #FF7A59;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Profile Button */
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #1F2937;
+  transition: all 0.2s ease;
+}
+
+.profile-button:hover {
+  background-color: rgba(0, 112, 243, 0.1);
+  color: #0070F3;
+}
+
+/* Material Icons */
+.material-icons {
+  font-size: 24px;
+}

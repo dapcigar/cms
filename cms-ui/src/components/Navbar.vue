@@ -19,18 +19,18 @@
       <slot name="actions" />
       
       <!-- Notifications -->
-      <button class="icon-button notification-button">
+      <button @click="handleNotifications" class="icon-button notification-button">
         <span class="material-icons">notifications</span>
         <span class="notification-badge">3</span>
       </button>
       
       <!-- Settings -->
-      <button class="icon-button">
+      <button @click="handleSettings" class="icon-button">
         <span class="material-icons">settings</span>
       </button>
       
       <!-- Profile -->
-      <button class="profile-button">
+      <button @click="handleProfile" class="profile-button">
         <span class="material-icons">account_circle</span>
         <span>Profile</span>
       </button>
@@ -50,10 +50,26 @@ const props = defineProps({
 })
 
 // Emit events
-const emit = defineEmits(['toggle-sidebar'])
+const emit = defineEmits(['toggle-sidebar', 'show-notifications', 'show-settings', 'show-profile'])
 
 // Detect if on mobile
 const isMobile = ref(window.innerWidth < 768)
+
+// Handle button clicks
+function handleNotifications() {
+  emit('show-notifications')
+  console.log('Notifications clicked')
+}
+
+function handleSettings() {
+  emit('show-settings')
+  console.log('Settings clicked')
+}
+
+function handleProfile() {
+  emit('show-profile')
+  console.log('Profile clicked')
+}
 
 // Handle window resize
 function handleResize() {
@@ -94,7 +110,7 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 16px;
 }
 
 .toggle-button {
@@ -138,10 +154,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 9999px;
-  color: var(--color-text);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #1F2937;
   transition: all 0.2s ease;
   border: none;
   background: transparent;
@@ -151,7 +167,7 @@ onUnmounted(() => {
 
 .icon-button:hover {
   background-color: rgba(0, 112, 243, 0.1);
-  color: var(--color-primary);
+  color: #0070F3;
 }
 
 .notification-button {
@@ -160,25 +176,27 @@ onUnmounted(() => {
 
 .notification-badge {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: var(--color-accent);
+  top: 0;
+  right: 0;
+  background-color: #FF7A59;
   color: white;
-  border-radius: 9999px;
-  padding: 0.125rem 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  min-width: 1.25rem;
-  text-align: center;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
 .profile-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  background-color: var(--color-primary);
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #0070F3;
   color: white;
   transition: all 0.2s ease;
   border: none;

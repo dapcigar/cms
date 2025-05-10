@@ -14,18 +14,7 @@
         class="card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer no-underline"
         style="color: inherit;"
       >
-        <style scoped>
-          /* Design system colors */
-          :root {
-            --color-primary: #0070F3;
-            --color-accent: #FF7A59;
-            --color-background: #F9FAFB;
-            --color-text: #1F2937;
-            --color-success: #10B981;
-            --color-error: #EF4444;
-            --color-info: #3B82F6;
-          }
-        </style>
+
         <div class="flex items-center justify-between mb-2">
           <span :class="[
             'rounded-full px-3 py-1 text-xs font-semibold',

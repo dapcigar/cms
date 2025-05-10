@@ -215,7 +215,21 @@ END $$;
 
 -- Update profiles table to include role
 ALTER TABLE public.profiles
-ADD COLUMN IF NOT EXISTS role user_role DEFAULT 'staff';
+ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'staff';
+
+-- Add assigned_users column to audits table
+ALTER TABLE public.audits
+ADD COLUMN IF NOT EXISTS assigned_users uuid[] DEFAULT '{}';
+
+-- Add scheduled_date to audits if not exists
+ALTER TABLE audits ADD COLUMN IF NOT EXISTS scheduled_date date;
+
+-- Add type to incidents if not exists
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS type text;
+
+-- Add name column to users table
+ALTER TABLE auth.users
+ADD COLUMN IF NOT EXISTS name TEXT;
 
 -- Create trigger for auto-creating profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user()

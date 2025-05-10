@@ -34,50 +34,50 @@
     </Card>
 
     <Modal :show="showCreate" @close="showCreate = false">
-      <h2 class="font-heading text-xl mb-4">Create User</h2>
-      <form @submit.prevent="createUser" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <Input v-model="newUser.name" placeholder="Enter name" />
+      <h2 class="modal-title">Create User</h2>
+      <form @submit.prevent="createUser" class="modal-form">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <Input v-model="newUser.name" placeholder="Enter name" class="form-input" />
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Email</label>
-          <Input v-model="newUser.email" type="email" placeholder="Enter email" />
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <Input v-model="newUser.email" type="email" placeholder="Enter email" class="form-input" />
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Password</label>
-          <Input v-model="newUser.password" type="password" placeholder="Enter password" />
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <Input v-model="newUser.password" type="password" placeholder="Enter password" class="form-input" />
         </div>
-        <div v-if="isAdmin">
-          <label class="block text-sm font-medium mb-1">Role</label>
-          <select v-model="newUser.role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+        <div v-if="isAdmin" class="form-group">
+          <label class="form-label">Role</label>
+          <select v-model="newUser.role" class="form-select">
             <option value="admin">Admin</option>
             <option value="staff">Staff</option>
           </select>
         </div>
-        <Button type="submit" color="primary" class="w-full">Create User</Button>
+        <Button type="submit" color="primary" class="w-full mt-4">Create User</Button>
       </form>
     </Modal>
 
     <Modal :show="!!editTarget" @close="editTarget = null">
-      <h2 class="font-heading text-xl mb-4">Edit User</h2>
-      <form v-if="editTarget" @submit.prevent="updateUser" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <Input v-model="editTarget.name" placeholder="Enter name" />
+      <h2 class="modal-title">Edit User</h2>
+      <form v-if="editTarget" @submit.prevent="updateUser" class="modal-form">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <Input v-model="editTarget.name" placeholder="Enter name" class="form-input" />
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Email</label>
-          <Input v-model="editTarget.email" type="email" placeholder="Enter email" />
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <Input v-model="editTarget.email" type="email" placeholder="Enter email" class="form-input" />
         </div>
-        <div v-if="isAdmin">
-          <label class="block text-sm font-medium mb-1">Role</label>
-          <select v-model="editTarget.role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+        <div v-if="isAdmin" class="form-group">
+          <label class="form-label">Role</label>
+          <select v-model="editTarget.role" class="form-select">
             <option value="admin">Admin</option>
             <option value="staff">Staff</option>
           </select>
         </div>
-        <Button type="submit" color="primary" class="w-full">Update User</Button>
+        <Button type="submit" color="primary" class="w-full mt-4">Update User</Button>
       </form>
     </Modal>
   </Layout>
@@ -165,3 +165,77 @@ async function updateUser() {
   }
 }
 </script>
+
+<style scoped>
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.form-select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  background-color: white;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+/* Role badges */
+.bg-primary\/10 {
+  background-color: rgba(0, 112, 243, 0.1);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-success\/10 {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+</style>
