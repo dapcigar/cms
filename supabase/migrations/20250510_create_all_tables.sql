@@ -44,6 +44,18 @@ CREATE TABLE IF NOT EXISTS public.action_plans (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+CREATE OR REPLACE FUNCTION public.update_modified_column() 
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER public.update_action_plans_modtime 
+BEFORE UPDATE ON public.action_plans 
+FOR EACH ROW EXECUTE FUNCTION public.update_modified_column();
+
 -- Create audits table
 CREATE TABLE IF NOT EXISTS public.audits (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -183,11 +195,6 @@ CREATE TRIGGER handle_incidents_updated_at
 
 CREATE TRIGGER handle_safeguarding_updated_at
     BEFORE UPDATE ON public.safeguarding
-    FOR EACH ROW
-    EXECUTE FUNCTION public.handle_updated_at();
-
-CREATE TRIGGER handle_action_plans_updated_at
-    BEFORE UPDATE ON public.action_plans
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
 

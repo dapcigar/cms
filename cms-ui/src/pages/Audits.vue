@@ -2,45 +2,91 @@
   <Layout>
     <div class="flex justify-between items-center mb-6">
       <h1 class="font-heading text-2xl">Audits</h1>
-      <router-link :to="{ name: 'AuditCreateForm' }">
-        <Button color="primary">New Audit</Button>
-      </router-link>
+      <Button color="primary" @click="showCreate = true">New Audit</Button>
     </div>
-    <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-      <router-link
-        v-for="audit in audits"
-        :key="audit.id"
-        :to="{ name: 'AuditDetail', params: { id: audit.id } }"
-        class="block no-underline"
-      >
-        <div class="p-4 h-full card shadow-lg border border-gray-100 hover:shadow-xl transition-all bg-white flex flex-col cursor-pointer">
-          <div class="flex items-center justify-between mb-4">
-            <span class="font-bold text-lg text-primary">{{ audit.title }}</span>
-            <span :class="[
-              'rounded-full px-3 py-1 text-xs font-semibold',
-              audit.status === 'open' ? 'bg-success/10 text-success' : 'bg-secondary/10 text-secondary'
-            ]">
-              {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
-            </span>
-          </div>
-          <div class="mb-4">
-            <div class="text-xs text-gray-500 mb-2">Assigned Users:</div>
-            <div class="flex flex-wrap gap-1.5">
-              <span v-for="userId in audit.assigned_users" :key="userId" class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
-                {{ getUserName(userId) }}
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Users</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr v-for="audit in audits" :key="audit.id" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-primary">{{ audit.title }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span :class="[
+                'px-2 py-1 text-xs font-semibold rounded-full',
+                audit.status === 'open' ? 'bg-success/10 text-success' : 'bg-secondary/10 text-secondary'
+              ]">
+                {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
               </span>
-              <span v-if="!audit.assigned_users?.length" class="text-xs text-gray-400">No users assigned</span>
-            </div>
-          </div>
-          <div class="mt-auto flex gap-2">
-            <Button color="primary" size="sm" @click.prevent="editAudit(audit)">Edit</Button>
-          </div>
-        </div>
-      </router-link>
-      <div v-if="audits.length === 0" class="col-span-full text-center py-8 text-gray-500">
-        No audits found. Click "New Audit" to create one.
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
+                <span 
+                  v-for="userId in audit.assigned_users" 
+                  :key="userId" 
+                  class="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium"
+                >
+                  <i class="material-icons text-sm">person</i>
+                  {{ getUserName(userId) }}
+                </span>
+                <span v-if="!audit.assigned_users?.length" class="text-gray-400 text-sm">No users assigned</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ new Date(audit.created_at).toLocaleDateString() }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <Button color="secondary" size="sm" @click="editAudit(audit)">Edit</Button>
+            </td>
+          </tr>
+          <tr v-if="audits.length === 0">
+            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+              No audits found. Click "New Audit" to create one.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="flex items-center justify-between mt-4 px-4 py-3 bg-white border-t border-gray-200">
+      <div class="text-sm text-gray-500">
+        Showing <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
+        <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> of 
+        <span class="font-medium">{{ totalItems }}</span> audits
+      </div>
+      
+      <div class="flex space-x-2">
+        <Button 
+          color="secondary" 
+          size="sm"
+          :disabled="currentPage === 1"
+          @click="currentPage--; fetchAudits()"
+        >
+          Previous
+        </Button>
+        
+        <Button 
+          color="secondary" 
+          size="sm"
+          :disabled="currentPage * itemsPerPage >= totalItems"
+          @click="currentPage++; fetchAudits()"
+        >
+          Next
+        </Button>
       </div>
     </div>
+
     <Modal :show="showCreate" @close="showCreate = false">
       <h2 class="font-heading text-xl mb-2">Create Audit</h2>
       <form @submit.prevent="createAudit">
@@ -75,13 +121,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import Layout from '../components/Layout.vue'
-import Card from '../components/Card.vue'
-import Table from '../components/Table.vue'
 import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
 import { supabase } from '../supabase'
-
 
 const audits = ref<any[]>([])
 const users = ref<any[]>([])
@@ -89,16 +132,33 @@ const showCreate = ref(false)
 const newAudit = ref({ title: '', status: 'open', assigned_users: [] })
 const editTarget = ref<any | null>(null)
 
+// Pagination
+const currentPage = ref(1)
+const itemsPerPage = 10
+const totalItems = ref(0)
+
 function getUserName(id: string) {
   const user = users.value.find(u => u.id === id)
-  return user ? user.name : id
+  return user ? user.name || user.email || user.id : id
 }
 
 async function fetchAudits() {
+  const from = (currentPage.value - 1) * itemsPerPage
+  const to = from + itemsPerPage - 1
+  
+  // First get total count
+  const { count } = await supabase
+    .from('audits')
+    .select('*', { count: 'exact', head: true })
+  
+  totalItems.value = count || 0
+  
+  // Then get paginated data
   const { data, error } = await supabase
     .from('audits')
     .select('id, title, status, description, assigned_users, created_at')
     .order('created_at', { ascending: false })
+    .range(from, to)
   
   if (error) {
     console.error('Error fetching audits:', error)
@@ -107,6 +167,7 @@ async function fetchAudits() {
   
   audits.value = data || []
 }
+
 async function fetchUsers() {
   const { data, error } = await supabase
     .from('users')
@@ -120,6 +181,7 @@ async function fetchUsers() {
   
   users.value = data || []
 }
+
 let auditSubscription: any = null
 onMounted(() => {
   fetchAudits();

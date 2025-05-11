@@ -120,26 +120,53 @@ onMounted(fetchUsers)
 
 async function createUser() {
   try {
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Basic validation
+    if (!newUser.value.email || !newUser.value.password) {
+      alert('Email and password are required');
+      return;
+    }
+    
+    // Simple signup without metadata to isolate the issue
+    const { data, error } = await supabase.auth.signUp({
       email: newUser.value.email,
-      password: newUser.value.password,
-      email_confirm: true,
-      user_metadata: { 
-        name: newUser.value.name,
-        role: newUser.value.role 
-      }
+      password: newUser.value.password
     })
 
-    if (authError) throw authError
-
+    if (error) {
+      console.error('Signup error details:', error);
+      throw error;
+    }
+    
+    console.log('User created successfully:', data);
+    
+    // Now manually create the profile
+    if (data?.user?.id) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert([
+          { 
+            id: data.user.id,
+            email: newUser.value.email,
+            role: newUser.value.role || 'staff'
+          }
+        ]);
+      
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        throw profileError;
+      }
+    }
+    
+    // Success message
+    alert(`User ${newUser.value.email} created successfully!`);
+    
     // Clear form and refresh
-    newUser.value = { name: '', email: '', password: '', role: 'staff' }
-    showCreate.value = false
-    await fetchUsers()
+    newUser.value = { name: '', email: '', password: '', role: 'staff' };
+    showCreate.value = false;
+    await fetchUsers();
   } catch (error) {
-    console.error('Error creating user:', error)
-    // You can add toast notification here
+    console.error('Error creating user:', error);
+    alert(`Error creating user: ${error.message || JSON.stringify(error)}`);
   }
 }
 

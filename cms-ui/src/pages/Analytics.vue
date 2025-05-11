@@ -46,19 +46,19 @@
 
     <!-- Charts Row -->
     <div class="charts-grid">
-      <div class="chart-card">
-        <h2 class="chart-title">Incidents Over Time</h2>
-        <div class="chart-container">
-          <canvas id="incidentsChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card">
-        <h2 class="chart-title">Complaints by Status</h2>
-        <div class="chart-container">
-          <canvas id="complaintsChart"></canvas>
-        </div>
-      </div>
+  <div class="chart-card">
+    <h2 class="chart-title">Incidents Over Time</h2>
+    <div class="chart-container">
+      <Bar :data="incidentsChartData" :options="incidentsChartOptions" />
     </div>
+  </div>
+  <div class="chart-card">
+    <h2 class="chart-title">Complaints by Status</h2>
+    <div class="chart-container">
+      <Pie :data="complaintsChartData" :options="complaintsChartOptions" />
+    </div>
+  </div>
+</div>
 
     <!-- Table Row -->
     <div class="data-card">
@@ -96,11 +96,72 @@ import { ref, onMounted } from 'vue'
 import Layout from '../components/Layout.vue'
 import Button from '../components/Button.vue'
 import { supabase } from '../lib/supabaseClient'
+import { Bar, Pie } from 'vue-chartjs'
+import {
+  Chart,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  ArcElement
+} from 'chart.js'
+
+// Register Chart.js components
+Chart.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
 
 let kpi = ref({ incidents: 0, complaints: 0, completedActions: 0, openCases: 0 })
 let recentActivity = ref<any[]>([])
 let loading = ref(false)
 let error = ref('')
+
+// Chart Data and Options
+const incidentsChartData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+  datasets: [
+    {
+      label: 'Incidents',
+      backgroundColor: '#0070F3',
+      borderColor: '#0070F3',
+      data: [10, 20, 15, 30], // Replace with real data if available
+      borderRadius: 8,
+      barPercentage: 0.7
+    }
+  ]
+})
+const incidentsChartOptions = ref({
+  responsive: true,
+  plugins: {
+    legend: { display: false },
+    title: { display: false }
+  },
+  scales: {
+    x: { ticks: { color: '#1F2937' }, grid: { color: '#F9FAFB' } },
+    y: { ticks: { color: '#1F2937' }, grid: { color: '#F9FAFB' }, beginAtZero: true }
+  }
+})
+
+const complaintsChartData = ref({
+  labels: ['Open', 'Closed'],
+  datasets: [
+    {
+      label: 'Complaints',
+      backgroundColor: ['#FF7A59', '#10B981'],
+      borderColor: ['#FF7A59', '#10B981'],
+      data: [1, 0] // Replace with real data if available
+    }
+  ]
+})
+const complaintsChartOptions = ref({
+  responsive: true,
+  plugins: {
+    legend: {
+      labels: { color: '#1F2937', font: { family: 'Inter, Open Sans, sans-serif', size: 14 } }
+    },
+    title: { display: false }
+  }
+})
 
 // Helper functions for status badges
 function getTypeClass(type: string) {

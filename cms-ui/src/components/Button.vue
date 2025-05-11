@@ -13,7 +13,7 @@ const props = defineProps({
   color: {
     type: String,
     default: 'primary',
-    validator: (value) => ['primary', 'accent', 'success', 'error', 'info'].includes(value)
+    validator: (value) => ['primary', 'accent', 'success', 'error', 'info', 'secondary'].includes(value)
   },
   disabled: {
     type: Boolean,
@@ -109,6 +109,19 @@ defineEmits(['click'])
 
 .button-info:active {
   background-color: rgba(59, 130, 246, 0.8);
+}
+
+.button-secondary {
+  background-color: var(--color-secondary, #6c757d);
+  color: white;
+}
+
+.button-secondary:hover {
+  background-color: rgba(108, 117, 125, 0.9);
+}
+
+.button-secondary:active {
+  background-color: rgba(108, 117, 125, 0.8);
 }
 
 .button.disabled {
