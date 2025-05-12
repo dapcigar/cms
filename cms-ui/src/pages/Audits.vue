@@ -1,120 +1,107 @@
 <template>
   <Layout>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="font-heading text-2xl">Audits</h1>
-      <Button color="primary" @click="showCreate = true">New Audit</Button>
-    </div>
-
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Users</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="audit in audits" :key="audit.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-primary">{{ audit.title }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span :class="[
-                'px-2 py-1 text-xs font-semibold rounded-full',
-                audit.status === 'open' ? 'bg-success/10 text-success' : 'bg-secondary/10 text-secondary'
-              ]">
-                {{ audit.status.charAt(0).toUpperCase() + audit.status.slice(1) }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span 
-                  v-for="userId in audit.assigned_users" 
-                  :key="userId" 
-                  class="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium"
-                >
-                  <i class="material-icons text-sm">person</i>
-                  {{ getUserName(userId) }}
-                </span>
-                <span v-if="!audit.assigned_users?.length" class="text-gray-400 text-sm">No users assigned</span>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ new Date(audit.created_at).toLocaleDateString() }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <Button color="secondary" size="sm" @click="editAudit(audit)">Edit</Button>
-            </td>
-          </tr>
-          <tr v-if="audits.length === 0">
-            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-              No audits found. Click "New Audit" to create one.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination Controls -->
-    <div class="flex items-center justify-between mt-4 px-4 py-3 bg-white border-t border-gray-200">
-      <div class="text-sm text-gray-500">
-        Showing <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
-        <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> of 
-        <span class="font-medium">{{ totalItems }}</span> audits
-      </div>
-      
-      <div class="flex space-x-2">
-        <Button 
-          color="secondary" 
-          size="sm"
-          :disabled="currentPage === 1"
-          @click="currentPage--; fetchAudits()"
+    <div class="audits-page bg-gray-50 min-h-screen p-6">
+      <div class="audits-header">
+        <h1 class="text-2xl font-semibold text-gray-800">Audits</h1>
+        <button 
+          v-if="activeTab === 'assignments'" 
+          @click="showCreate = true"
+          class="primary-btn"
         >
-          Previous
-        </Button>
+          <span class="material-icons">add</span>
+          New Audit
+        </button>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="audits-tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.id }"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="audits-content">
+        <!-- Assignments Tab -->
+        <div v-show="activeTab === 'assignments'" class="p-6">
+          <AuditAssignments />
+        </div>
         
-        <Button 
-          color="secondary" 
-          size="sm"
-          :disabled="currentPage * itemsPerPage >= totalItems"
-          @click="currentPage++; fetchAudits()"
-        >
-          Next
-        </Button>
+        <!-- Templates Tab -->
+        <div v-show="activeTab === 'templates'" class="p-6">
+          <AuditTemplates />
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div v-show="activeTab === 'dashboard'" class="p-6">
+          <AuditDashboard />
+        </div>
       </div>
-    </div>
 
-    <Modal :show="showCreate" @close="showCreate = false">
-      <h2 class="font-heading text-xl mb-2">Create Audit</h2>
-      <form @submit.prevent="createAudit">
-        <Input v-model="newAudit.title" placeholder="Title" class="mb-2" />
-        <select v-model="newAudit.status" class="mb-2 p-2 border rounded w-full">
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-        </select>
-        <select v-model="newAudit.assigned_users" multiple class="mb-4 p-2 border rounded w-full">
-          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-        </select>
-        <Button color="primary" class="w-full">Create</Button>
-      </form>
-    </Modal>
-    <Modal :show="!!editTarget" @close="editTarget = null">
-      <h2 class="font-heading text-xl mb-2">Edit Audit</h2>
-      <form @submit.prevent="updateAudit">
-        <Input v-model="editTarget.title" placeholder="Title" class="mb-2" />
-        <select v-model="editTarget.status" class="mb-2 p-2 border rounded w-full">
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-        </select>
-        <select v-model="editTarget.assigned_users" multiple class="mb-4 p-2 border rounded w-full">
-          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-        </select>
-        <Button color="primary" class="w-full">Update</Button>
-      </form>
-    </Modal>
+      <!-- Pagination Controls -->
+      <div v-if="activeTab === 'assignments'" class="flex items-center justify-between mt-4 px-4 py-3 bg-white border-t border-gray-200">
+        <div class="text-sm text-gray-500">
+          Showing <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
+          <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> of 
+          <span class="font-medium">{{ totalItems }}</span> audits
+        </div>
+        
+        <div class="flex space-x-2">
+          <Button 
+            color="secondary" 
+            size="sm"
+            :disabled="currentPage === 1"
+            @click="currentPage--; fetchAudits()"
+          >
+            Previous
+          </Button>
+          
+          <Button 
+            color="secondary" 
+            size="sm"
+            :disabled="currentPage * itemsPerPage >= totalItems"
+            @click="currentPage++; fetchAudits()"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+
+      <Modal :show="showCreate" @close="showCreate = false">
+        <h2 class="font-heading text-xl mb-2">Create Audit</h2>
+        <form @submit.prevent="createAudit">
+          <Input v-model="newAudit.title" placeholder="Title" class="mb-2" />
+          <select v-model="newAudit.status" class="mb-2 p-2 border rounded w-full">
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select v-model="newAudit.assigned_users" multiple class="mb-4 p-2 border rounded w-full">
+            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
+          </select>
+          <Button color="primary" class="w-full">Create</Button>
+        </form>
+      </Modal>
+      <Modal :show="!!editTarget" @close="editTarget = null">
+        <h2 class="font-heading text-xl mb-2">Edit Audit</h2>
+        <form @submit.prevent="updateAudit">
+          <Input v-model="editTarget.title" placeholder="Title" class="mb-2" />
+          <select v-model="editTarget.status" class="mb-2 p-2 border rounded w-full">
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select v-model="editTarget.assigned_users" multiple class="mb-4 p-2 border rounded w-full">
+            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
+          </select>
+          <Button color="primary" class="w-full">Update</Button>
+        </form>
+      </Modal>
+    </div>
   </Layout>
 </template>
 
@@ -124,6 +111,9 @@ import Layout from '../components/Layout.vue'
 import Button from '../components/Button.vue'
 import Modal from '../components/Modal.vue'
 import Input from '../components/Input.vue'
+import AuditAssignments from './AuditAssignments.vue'
+import AuditTemplates from './AuditTemplates.vue'
+import AuditDashboard from './AuditDashboard.vue'
 import { supabase } from '../supabase'
 
 const audits = ref<any[]>([])
@@ -136,6 +126,13 @@ const editTarget = ref<any | null>(null)
 const currentPage = ref(1)
 const itemsPerPage = 10
 const totalItems = ref(0)
+
+const activeTab = ref('assignments')
+const tabs = [
+  { id: 'assignments', label: 'Assignments' },
+  { id: 'templates', label: 'Templates' },
+  { id: 'dashboard', label: 'Analytics' }
+]
 
 function getUserName(id: string) {
   const user = users.value.find(u => u.id === id)
@@ -266,3 +263,10 @@ async function updateAudit() {
   fetchAudits()
 }
 </script>
+
+<style scoped>
+/* Custom styles for smooth transitions */
+.audits-page {
+  transition: background-color 0.3s ease;
+}
+</style>

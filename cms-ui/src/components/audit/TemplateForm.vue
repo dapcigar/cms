@@ -1,102 +1,50 @@
 <template>
-  <div class="template-form">
-    <h2 class="text-xl font-semibold mb-4 text-slate-800">
+  <div class="template-form font-sans">
+    <h2 class="text-xl font-semibold mb-4 text-[#1F2937]">
       {{ editing ? 'Edit Template' : 'Create Template' }}
     </h2>
-    
-    <form @submit.prevent="handleSubmit">
-      <div class="space-y-4">
-        <!-- Title Input -->
+    <form @submit.prevent="handleSubmit" role="form" aria-label="Audit Template Form" novalidate>
+      <div v-if="error" class="mb-4 text-[#EF4444] text-sm" aria-live="polite">{{ error }}</div>
+      <div class="space-y-6">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            Template Title
-          </label>
+          <label class="block text-sm font-medium text-[#1F2937] mb-1">Title</label>
           <input
             v-model="form.title"
             type="text"
             required
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Template Title"
+            :aria-invalid="!form.title"
+            class="w-full px-3 py-3 min-h-[44px] border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0070F3] font-sans transition-all duration-200 placeholder:font-sans placeholder:text-[#94A3B8]"
+            placeholder="Enter template title"
+            autocomplete="off"
           />
         </div>
-
-        <!-- Frequency Select -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            Frequency
-          </label>
+          <label class="block text-sm font-medium text-[#1F2937] mb-1">Frequency</label>
           <select
             v-model="form.frequency"
             required
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Audit Frequency"
+            class="w-full px-3 py-3 min-h-[44px] border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0070F3] font-sans transition-all duration-200"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </div>
-
-        <!-- Questions Section -->
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-sm font-medium text-slate-700">
-              Questions
-            </label>
-            <button
-              type="button"
-              @click="addQuestion"
-              class="text-sm text-blue-600 hover:text-blue-800"
-            >
-              + Add Question
-            </button>
-          </div>
-          
-          <div v-for="(question, index) in form.questions" :key="index" class="mb-3 p-3 border border-slate-200 rounded-md">
-            <div class="flex justify-between mb-2">
-              <span class="text-sm font-medium text-slate-700">Question {{ index + 1 }}</span>
-              <button
-                type="button"
-                @click="removeQuestion(index)"
-                class="text-sm text-red-600 hover:text-red-800"
-              >
-                Remove
-              </button>
-            </div>
-            
-            <!-- Question Text -->
-            <input
-              v-model="question.text"
-              type="text"
-              placeholder="Enter question text"
-              required
-              class="w-full px-2 py-1 mb-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            
-            <!-- Max Score -->
-            <div>
-              <label class="block text-xs text-slate-600 mb-1">Max Score</label>
-              <input
-                v-model.number="question.maxScore"
-                type="number"
-                min="1"
-                required
-                class="w-full px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Actions -->
         <div class="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             @click="$emit('cancel')"
-            class="px-4 py-2 border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50"
+            aria-label="Cancel"
+            class="px-4 py-3 min-h-[44px] border border-slate-300 rounded-md text-[#1F2937] hover:bg-slate-50 font-sans transition-all duration-200"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            :aria-label="editing ? 'Update Template' : 'Create Template'"
+            class="px-4 py-3 min-h-[44px] bg-[#0070F3] text-white rounded-md hover:bg-[#005CC5] font-sans transition-all duration-200 focus:ring-2 focus:ring-[#0070F3] focus:ring-offset-2"
           >
             {{ editing ? 'Update' : 'Create' }}
           </button>
@@ -107,40 +55,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-defineProps({
+import { ref, watch } from 'vue'
+const props = defineProps({
   editing: {
     type: Boolean,
     default: false
+  },
+  template: {
+    type: Object,
+    default: null
   }
 })
-
 const emit = defineEmits(['submit', 'cancel'])
-
 const form = ref({
+  id: null,
   title: '',
   frequency: 'daily',
-  questions: [
-    { text: '', maxScore: 1 }
-  ]
 })
-
-function addQuestion() {
-  form.value.questions.push({ text: '', maxScore: 1 })
-}
-
-function removeQuestion(index: number) {
-  form.value.questions.splice(index, 1)
-}
-
+const error = ref('')
+watch(
+  () => props.template,
+  (val) => {
+    if (props.editing && val) {
+      form.value.id = val.id
+      form.value.title = val.title
+      form.value.frequency = val.frequency
+    } else {
+      form.value.id = null
+      form.value.title = ''
+      form.value.frequency = 'daily'
+    }
+  },
+  { immediate: true }
+)
 function handleSubmit() {
-  emit('submit', form.value)
+  error.value = ''
+  if (!form.value.title) {
+    error.value = 'Template title is required.'
+    return
+  }
+  emit('submit', {
+    id: form.value.id,
+    title: form.value.title,
+    frequency: form.value.frequency
+  })
 }
 </script>
 
 <style scoped>
 .template-form {
   @apply bg-white p-6 rounded-lg shadow-sm;
+  font-family: 'Inter', 'Open Sans', sans-serif;
 }
 </style>

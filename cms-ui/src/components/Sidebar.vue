@@ -20,6 +20,20 @@
             >3</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a
+            href="#"
+            @click.prevent="navigateTo('/audits')"
+            class="nav-link"
+            :class="{
+              'active': isActive({path: '/audits'}),
+              'collapsed-item': collapsed
+            }"
+          >
+            <span class="nav-icon material-icons">checklist</span>
+            <span v-if="!collapsed" class="nav-label">Audits</span>
+          </a>
+        </li>
       </ul>
     </nav>
     

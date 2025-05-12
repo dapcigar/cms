@@ -36,18 +36,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/audits/new',
-    name: 'AuditCreateForm',
-    component: () => import('./pages/AuditForm.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/audits/:id',
-    name: 'AuditDetail',
-    component: () => import('./pages/AuditDetail.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/action-plans',
     name: 'ActionPlans',
     component: () => import('./pages/ActionPlans.vue'),

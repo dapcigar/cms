@@ -2,65 +2,70 @@
   <div class="assignment-form">
     <h2 class="text-xl font-semibold mb-4 text-slate-800">Assign Audit</h2>
     
-    <form @submit.prevent="handleSubmit">
-      <div class="space-y-4">
+    <form @submit.prevent="handleSubmit" aria-label="Assign Audit">
+      <div class="space-y-6">
         <!-- Template Selection -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-[#1F2937] mb-1" for="template-select">
             Template
           </label>
           <select
+            id="template-select"
             v-model="form.template_id"
             required
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Audit Template"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0070F3] font-sans"
           >
             <option v-for="template in templates" :key="template.id" :value="template.id">
               {{ template.title }} ({{ template.frequency }})
             </option>
           </select>
         </div>
-
         <!-- Assign To -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-[#1F2937] mb-1" for="user-select">
             Assign To
           </label>
           <select
+            id="user-select"
             v-model="form.assigned_to"
             required
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Assign To User"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0070F3] font-sans"
           >
             <option v-for="user in users" :key="user.id" :value="user.id">
               {{ user.email }}
             </option>
           </select>
         </div>
-
         <!-- Due Date -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-[#1F2937] mb-1" for="due-date-input">
             Due Date
           </label>
           <input
+            id="due-date-input"
             v-model="form.due_date"
             type="date"
             required
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Due Date"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0070F3] font-sans"
           />
         </div>
-
         <!-- Form Actions -->
         <div class="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             @click="$emit('cancel')"
-            class="px-4 py-2 border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50"
+            class="px-4 py-2 border border-slate-300 rounded-md text-[#1F2937] hover:bg-slate-50 font-sans"
+            aria-label="Cancel Assignment"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            class="px-4 py-2 bg-[#0070F3] text-white rounded-md hover:bg-blue-700 font-sans"
+            aria-label="Assign Audit"
           >
             Assign
           </button>
