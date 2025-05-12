@@ -46,7 +46,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { supabase } from '../lib/supabaseClient'
 import Layout from '../components/Layout.vue'
 import Card from '../components/Card.vue'
 import Input from '../components/Input.vue'
@@ -54,25 +55,118 @@ import Button from '../components/Button.vue'
 import Toggle from '../components/Toggle.vue'
 
 const profile = ref({
-  name: 'John Doe',
-  email: 'john@example.com',
-  role: 'Administrator'
+  name: '',
+  email: '',
+  role: ''
 })
 
 const notifications = ref({
-  email: true,
+  email: false,
   push: false
 })
 
-async function saveProfile() {
-  // TODO: Implement profile update
-  console.log('Saving profile:', profile.value)
+const isLoading = ref(true)
+
+// Load user data
+async function loadUserData() {
+  try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      // Get profile data
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+        
+      if (error) throw error
+      
+      // Update profile ref
+      profile.value = {
+        name: profileData?.name || '',
+        email: user.email || '',
+        role: profileData?.role || ''
+      }
+      
+      // Get notification preferences
+      const { data: notificationData } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+        
+      if (notificationData) {
+        notifications.value = {
+          email: notificationData.email_notifications,
+          push: notificationData.push_notifications
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error loading user data:', error)
+  } finally {
+    isLoading.value = false
+  }
 }
 
-async function saveNotifications() {
-  // TODO: Implement notification preferences update
-  console.log('Saving notification preferences:', notifications.value)
+// Save profile changes
+async function saveProfile() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: profile.value.name,
+          email: profile.value.email,
+          updated_at: new Date().toISOString()
+        })
+        
+      if (error) throw error
+      
+      // Show success message
+      alert('Profile updated successfully')
+    }
+  } catch (error) {
+    console.error('Error saving profile:', error)
+    alert('Error saving profile: ' + error.message)
+  }
 }
+
+// Save notification preferences
+async function saveNotifications() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          email_notifications: notifications.value.email,
+          push_notifications: notifications.value.push,
+          updated_at: new Date().toISOString()
+        })
+        
+      if (error) throw error
+      
+      // Show success message
+      alert('Notification preferences updated successfully')
+    }
+  } catch (error) {
+    console.error('Error saving notification preferences:', error)
+    alert('Error saving notification preferences: ' + error.message)
+  }
+}
+
+// Load data when component mounts
+onMounted(() => {
+  loadUserData()
+})
 </script>
 
 <style scoped>

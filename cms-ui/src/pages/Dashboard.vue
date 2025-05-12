@@ -2,7 +2,14 @@
   <Layout>
     <div class="dashboard-header">
       <h1 class="dashboard-title">Dashboard</h1>
-
+      <Button 
+        color="accent" 
+        @click="confirmLogout"
+        class="logout-button"
+      >
+        <span class="material-icons">logout</span>
+        Logout
+      </Button>
     </div>
     
     <!-- KPI Summary Cards -->
@@ -239,6 +246,9 @@ import {
 import { Bar, Pie, Line, Doughnut } from 'vue-chartjs'
 import { supabase } from '../supabase'
 import { format, parseISO, subDays } from 'date-fns'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Register Chart.js components
 ChartJS.register(
@@ -594,6 +604,19 @@ async function fetchStats() {
       if (e.stack) {
         console.error('[DEBUG] error stack:', e.stack);
       }
+    }
+  }
+}
+
+// Logout function
+async function confirmLogout() {
+  if (confirm('Are you sure you want to logout?')) {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      router.push('/login')
+    } catch (error) {
+      console.error('Error logging out:', error)
     }
   }
 }
@@ -1058,5 +1081,16 @@ onMounted(fetchStats)
 
 .status-dot.inactive {
   background-color: var(--color-error);
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.logout-button .material-icons {
+  font-size: 1.1rem;
 }
 </style>
